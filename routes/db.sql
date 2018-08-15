@@ -1,0 +1,44 @@
+CREATE DATABASE STADY DEFAULT CHARACTER SET UTF8;
+USE STADY;
+
+CREATE TABLE users(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    account_id CHAR(20) NOT NULL,
+	account_pw CHAR(20) NOT NULL,
+    name CHAR(10) NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE INDEX ux_account_id (account_id)
+);
+
+CREATE TABLE users_data(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    user_id INT(8) NOT NULL,
+    data_table_code TINYINT(2) NOT NULL,
+    daily_data VARCHAR(100) DEFAULT NULL,
+    study_date DATE NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE exams(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE studies(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)  
+);
+
+CREATE TABLE data_national(
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    user_id INT(8) NOT NULL,
+    exam_id INT(8) NOT NULL,
+    study_id INT(8) NOT NULL,
+    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    term INT(8) DEFAULT 0,
+    PRIMARY KEY (id)
+);
+
