@@ -12,11 +12,11 @@ CREATE TABLE users(
 );
 
 
-CREATE TABLE users_info(
+CREATE TABLE users_goal(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
     goal_setting TEXT,
-    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reg_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
 
@@ -70,7 +70,6 @@ CREATE TABLE groups(
     group_users_ids VARCHAR(255) DEFAULT NULL,
     PRIMARY KEY (id)
 );
-
 
 /*
 CREATE TABLE users_data(
