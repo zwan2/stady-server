@@ -4,6 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+
 //db
 var db = require('./config/db');
 db.connect(function (err) {
@@ -16,6 +17,10 @@ db.connect(function (err) {
 
 
 var app = express();
+
+//socket
+var server = require('http').createServer(app);
+var io = require('socket.io')(server);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -49,14 +54,35 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+
+
+io.on('connection', function (socket) {
+  console.log('connection');
+});
+
+/*
+socket.join('room1')
+socket.broadcast.to('room1').emit('event', message);
+*/
+
+server.listen(3000, function () {
+
+  console.log('server running');
+});
+
+/*
 if (module === require.main) {
   // [START server]
   // Start the server
+ 
   const server = app.listen(process.env.PORT || 3000, () => {
     const port = server.address().port;
     console.log(`App listening on port ${port}`);
   });
+
   // [END server]
 }
+*/
+
 
 module.exports = app;
