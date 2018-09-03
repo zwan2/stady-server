@@ -19,8 +19,13 @@ db.connect(function (err) {
 var app = express();
 
 //socket
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+/*
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+*/
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -57,32 +62,23 @@ app.use(function(err, req, res, next) {
 
 
 io.on('connection', function (socket) {
-  console.log('connection');
+  console.log('socket connected!!!');
+  socket.emit('news', {
+    hello: 'world'
+  });
+   socket.on('my other event', function (data) {
+     console.log(data);
+   });
+  
 });
 
-/*
-socket.join('room1')
-socket.broadcast.to('room1').emit('event', message);
-*/
 
-server.listen(3000, function () {
 
+
+http.listen(3000, function () {
   console.log('server running');
 });
 
-/*
-if (module === require.main) {
-  // [START server]
-  // Start the server
- 
-  const server = app.listen(process.env.PORT || 3000, () => {
-    const port = server.address().port;
-    console.log(`App listening on port ${port}`);
-  });
-
-  // [END server]
-}
-*/
 
 
 module.exports = app;
