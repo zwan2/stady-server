@@ -20,31 +20,31 @@ CREATE TABLE users_goal(
     PRIMARY KEY (id)
 );
 
-CREATE TABLE exams_structure(
-    id INT(3) NOT NULL AUTO_INCREMENT,
-    main_exam_id INT(8) NOT NULL,
-    sub_exam_id INT(8) NOT NULL,
-    detail_subject_ids VARCHAR(255),
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE exams(
-   id INT(3) NOT NULL AUTO_INCREMENT,
-   title VARCHAR(20) NOT NULL,
-   PRIMARY KEY (id)
-);
-
-CREATE TABLE subjects(
-    id INT(3) NOT NULL AUTO_INCREMENT,
-    exam_id INT(3) NOT NULL, 
+CREATE TABLE cat0(
+    id INT(8) NOT NULL AUTO_INCREMENT,
     title VARCHAR(20) NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE studies(
-    id INT(3) NOT NULL AUTO_INCREMENT,
+CREATE TABLE cat1(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    parent_id INT(8) NOT NULL,
     title VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id)  
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE cat2(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    parent_id INT(8) NOT NULL,
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE cat3(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    parent_id INT(8) NOT NULL,
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE data(
@@ -80,4 +80,33 @@ CREATE TABLE users_data(
     study_date DATE NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE exams_structure(
+    id INT(3) NOT NULL AUTO_INCREMENT,
+    main_exam_id INT(8) NOT NULL,
+    sub_exam_id INT(8) NOT NULL,
+    detail_subject_ids VARCHAR(255),
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE exams(
+   id INT(3) NOT NULL AUTO_INCREMENT,
+   title VARCHAR(20) NOT NULL,
+   PRIMARY KEY (id)
+);
+
+CREATE TABLE subjects(
+    id INT(3) NOT NULL AUTO_INCREMENT,
+    exam_id INT(3) NOT NULL, 
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE studies(
+    id INT(3) NOT NULL AUTO_INCREMENT,
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)  
+);
+
+
 */

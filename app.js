@@ -22,10 +22,6 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 
-/*
-var server = require('http').createServer(app);
-var io = require('socket.io')(server);
-*/
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -60,19 +56,54 @@ app.use(function(err, req, res, next) {
 });
 
 
-
+/*
 io.on('connection', function (socket) {
   console.log('socket connected!!!');
-  socket.emit('news', {
-    hello: 'world'
+ 
+  //1. start, end
+  socket.on('sendMessage', function(data) {
+    io.sockets.to('room' + data.roomId).emit('send:message', data.message)
   });
-   socket.on('my other event', function (data) {
-     console.log(data);
-   });
-  
+
+
+  //2. join
+  socket.on('join:room', function(data) {
+    socket.join('room'+data.roomId);
+  });
+
 });
+*/
 
+io.sockets.on('connection', function (socket) {
 
+  // room join
+  // 사용자 접속 시 room join 및 접속한 사용자를 room 참여 인원들에게 알립니다.
+  socket.on('join', function (data) {
+    console.log(data);
+    
+    // socket join 을 합니다.
+    socket.join(data.roomname);
+    /*
+    socket.set('room', data.roomname);
+    // room join 인원들에게 메시지를 보냅니다.
+    socket.get('room', function (error, room) {
+      io.sockets.in(room).emit('join', data.userid);
+    });
+    */
+    io.sockets.in(data.roomname).emit('join', data.userid);
+  });
+
+  // message
+  socket.on('message', function (message) {
+    /*
+    socket.get('room', function (error, room) {
+      io.sockets.in(room).emit('message', message);
+    });
+    */
+    io.sockets.in(message.roomname).emit('message', message.message);
+  });
+  socket.on('disconnect', function () {});
+});
 
 
 http.listen(3000, function () {

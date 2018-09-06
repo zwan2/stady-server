@@ -1,4 +1,64 @@
-<script src="/socket.io/socket.io.js"></script>
-<script>
-  var socket = io();
-</script>
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title></title>
+  <script src="http://code.jquery.com/jquery-1.7.1.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    var socket = io();
+  </script>
+
+</head>
+
+<body>
+  <div id="log">
+    <span>아이디 : <input type="text" id="userid" /></span>
+    <span>방이름 : <input type="text" id="roomname" /></span>
+    <span><input type="button" id="enter" value="입장" /></span>
+  </div>
+  <div id="chat" style="display:none;">
+    <div style="width: 300px; height: 300px; border: solid 1px;" id="txtarea">
+      <dl id="txtappend">
+      </dl>
+    </div>
+    <br />
+    <input type="text" style="width: 255px;" id="txt" /><input type="button" value="Enter" id="btn" />
+  </div>
+  <script>
+    $(document).ready(function () {
+
+      // 아이디, 채팅방 이름 을 입력 후 버튼을 누르면 이벤트를 실행 합니다.
+      $('#enter').click(function () {
+        var userid = document.getElementById('userid');
+        var roomname = document.getElementById('roomname');
+
+        // Server 로 접속 유저아이디 와 접속한 채팅방 이름을 전송 합니다.
+        socket.emit('join', {
+          'userid': userid.value,
+          'roomname': roomname.value
+        });
+        document.getElementById('log').style.display = 'none';
+        document.getElementById('chat').style.display = 'block';
+      });
+
+      // 새로 접속 한 사용자가 있을 경우 알림을 받습니다.
+      socket.on('join', function (data) {
+        alert(data);
+        $('#txtappend').append('<dd style="margin:0px;">' + data + '님이 접속 하셨습니다.</dd>');
+      });
+
+      // 메시지 전송 이벤트 입니다.
+      $('#btn').click(function () {
+        var message = $('#txt').val();
+        socket.emit('message', message);
+      });
+      socket.on('message', function (data) {
+        $('#txtappend').append('<dd style="margin:0px;">' + data + '</dd>');
+        $('#txt').val('');
+      });
+    });
+  </script>
+</body>
+
+</html>
