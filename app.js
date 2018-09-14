@@ -56,53 +56,27 @@ app.use(function(err, req, res, next) {
 });
 
 
-/*
-io.on('connection', function (socket) {
-  console.log('socket connected!!!');
- 
-  //1. start, end
-  socket.on('sendMessage', function(data) {
-    io.sockets.to('room' + data.roomId).emit('send:message', data.message)
-  });
-
-
-  //2. join
-  socket.on('join:room', function(data) {
-    socket.join('room'+data.roomId);
-  });
-
-});
-*/
-
+//먼저 join 후 (start, stop)이 반복됨.
 io.sockets.on('connection', function (socket) {
 
-  // room join
-  // 사용자 접속 시 room join 및 접속한 사용자를 room 참여 인원들에게 알립니다.
+  //1. JOIN data.roomname
   socket.on('join', function (data) {
     console.log(data);
-    
     // socket join 을 합니다.
     socket.join(data.roomname);
-    /*
-    socket.set('room', data.roomname);
-    // room join 인원들에게 메시지를 보냅니다.
-    socket.get('room', function (error, room) {
-      io.sockets.in(room).emit('join', data.userid);
-    });
-    */
     io.sockets.in(data.roomname).emit('join', data.userid);
   });
 
-  // message
-  socket.on('message', function (message) {
-    /*
-    socket.get('room', function (error, room) {
-      io.sockets.in(room).emit('message', message);
-    });
-    */
+  // 2. START OR STOP MESSAGE EMIT
+  socket.on('message', function (message) { 
     io.sockets.in(message.roomname).emit('message', message.message);
   });
-  socket.on('disconnect', function () {});
+
+
+  socket.on('leave', function (data) {
+    socket.leave(data.roomname);
+    io.sockets.in(data.roomname).emit('user left', data.userid);
+  });
 });
 
 
