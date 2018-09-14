@@ -12,7 +12,7 @@ CREATE TABLE users(
 );
 
 
-CREATE TABLE users_goal(
+CREATE TABLE user_settings(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
     goal_setting TEXT,
@@ -20,41 +20,16 @@ CREATE TABLE users_goal(
     PRIMARY KEY (id)
 );
 
-CREATE TABLE cat0(
-    id INT(8) NOT NULL AUTO_INCREMENT,
-    title VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id)
-);
 
-CREATE TABLE cat1(
-    id INT(8) NOT NULL AUTO_INCREMENT,
-    parent_id INT(8) NOT NULL,
-    title VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id)
-);
 
-CREATE TABLE cat2(
-    id INT(8) NOT NULL AUTO_INCREMENT,
-    parent_id INT(8) NOT NULL,
-    title VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE cat3(
-    id INT(8) NOT NULL AUTO_INCREMENT,
-    parent_id INT(8) NOT NULL,
-    title VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id)
-);
-
-CREATE TABLE data(
+CREATE TABLE histories(
     id INT(11) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
-    exam_id INT(3) NOT NULL,
+    exam_address char(13) NOT NULL,
     subject_id INT(3) NOT NULL,
     study_id INT(3) NOT NULL,
-    start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    start_point TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_point TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     term INT(8) DEFAULT 0,
     PRIMARY KEY (id)
 );
@@ -71,42 +46,31 @@ CREATE TABLE groups(
     PRIMARY KEY (id)
 );
 
-/*
-CREATE TABLE users_data(
+
+/*정적 테이블*/
+CREATE TABLE exams_cat0(
     id INT(8) NOT NULL AUTO_INCREMENT,
-    user_id INT(8) NOT NULL,
-    data_table_code TINYINT(2) NOT NULL,
-    daily_data VARCHAR(255) DEFAULT NULL,
-    study_date DATE NOT NULL,
+    title VARCHAR(20) NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE exams_structure(
-    id INT(3) NOT NULL AUTO_INCREMENT,
-    main_exam_id INT(8) NOT NULL,
-    sub_exam_id INT(8) NOT NULL,
-    detail_subject_ids VARCHAR(255),
+CREATE TABLE exams_cat1(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    parent_id INT(8) NOT NULL,
+    title VARCHAR(20) NOT NULL,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE exams(
-   id INT(3) NOT NULL AUTO_INCREMENT,
-   title VARCHAR(20) NOT NULL,
-   PRIMARY KEY (id)
+CREATE TABLE exams_cat2(
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    parent_id INT(8) NOT NULL,
+    title VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 CREATE TABLE subjects(
-    id INT(3) NOT NULL AUTO_INCREMENT,
-    exam_id INT(3) NOT NULL, 
+    id INT(8) NOT NULL AUTO_INCREMENT,
+    exam_address char(13) NOT NULL,
     title VARCHAR(20) NOT NULL,
     PRIMARY KEY (id)
 );
-
-CREATE TABLE studies(
-    id INT(3) NOT NULL AUTO_INCREMENT,
-    title VARCHAR(20) NOT NULL,
-    PRIMARY KEY (id)  
-);
-
-
-*/

@@ -13,14 +13,14 @@ router.get('/', function (req, res, next) {
 
 
 // 스톱워치 정지 기능
-// REQ: userId, examId, subjectId, studyId, startTime, endTime, term
+// REQ: userId, examAdress, subjectId, studyId, startPoint, endPoint, term
 router.post('/stop', function(req, res, next) {
-    var queryInsertData = "INSERT INTO data (user_id, exam_id, subject_id, study_id, start_time, end_time, term) VALUES (?, ?, ?, ?, ?, ?);";
-     db.get().query(queryInsertData, [req.body.userId, req.body.examId, req.body.subjectId, req.body.studyId, req.body.startTime, req.body.endTime, req.body.term], function (err, rows) {
+    var queryInsertData = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
+     db.get().query(queryInsertData, [req.body.userId, req.body.examAdress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
         if (err) {
             return res.status(400).send(err);
         } else {
-            return res.status(200).send(JSON.stringify(rows[0]));
+            return res.status(200);
         }
     });
 })
