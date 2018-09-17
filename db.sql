@@ -5,15 +5,16 @@ CREATE TABLE user_accounts(
     id INT(8) NOT NULL AUTO_INCREMENT,
     account_id CHAR(20) NOT NULL,
 	account_pw CHAR(20) NOT NULL,
-	UNIQUE INDEX ux_account_id (account_id)
+	UNIQUE INDEX ux_account_id (account_id),
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE user_data(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
     name CHAR(10) NOT NULL,
+    exam_address VARCHAR(13) NOT NULL,
     group_ids VARCHAR(255) DEFAULT NULL,
-    exam_addresses TEXT,
 	PRIMARY KEY (id)
 );
 
@@ -21,18 +22,27 @@ CREATE TABLE user_data(
 CREATE TABLE user_goals(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
-    exam_address char(13) NOT NULL,
-    goal_setting TEXT,
+    exam_address VARCHAR(13) NOT NULL,
+    total_goal INT(8) DEFAULT NULL,
+    subjects_goal VARCHAR(255) DEFAULT NULL,
     reg_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
 
 
+CREATE TABLE today(
+	id INT(11) NOT NULL AUTO_INCREMENT,
+	user_id INT(8) NOT NULL,
+	date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	goal char,
+	
+);
+
 
 CREATE TABLE histories(
     id INT(11) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
-    exam_address char(13) NOT NULL,
+    exam_address VARCHAR(13) NOT NULL,
     subject_id INT(3) NOT NULL,
     study_id INT(3) NOT NULL,
     start_point TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -41,9 +51,10 @@ CREATE TABLE histories(
     PRIMARY KEY (id)
 );
 
+
 CREATE TABLE groups(
     id INT(8) NOT NULL AUTO_INCREMENT,
-    exam_address char(13) NOT NULL,
+    exam_address VARCHAR(13) NOT NULL,
     open_option TINYINT(2) DEFAULT 0,
     title VARCHAR(30) NOT NULL,
     subtitle VARCHAR(100) DEFAULT NULL,

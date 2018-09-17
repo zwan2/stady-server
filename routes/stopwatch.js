@@ -20,7 +20,7 @@ router.post('/stop', function(req, res, next) {
         if (err) {
             return res.status(400).send(err);
         } else {
-            return res.status(200);
+            return res.sendStatus(200);
         }
     });
 })
