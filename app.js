@@ -64,7 +64,8 @@ io.sockets.on('connection', function (socket) {
   socket.on('join', function (data) {
     console.log(data);
     // socket join 을 합니다.
-    socket.join(data.roomname);
+    socket.join(data.romname);
+    //구성원에게 알림.
     io.sockets.in(data.roomname).emit('join', data.userid);
   });
 

@@ -3,9 +3,6 @@ var router = express.Router();
 var db = require('../config/db');
 var moment = require('moment');
 
-//var tableNameArray = ['data_national', 'data_sat', 'data_teacher', 'data_cert'];
-
-
 /* GET users listing. */
 router.get('/', function (req, res, next) {
     res.send('respond with a resource');

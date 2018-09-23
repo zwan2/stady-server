@@ -30,15 +30,6 @@ CREATE TABLE user_goals(
 );
 
 
-CREATE TABLE today(
-	id INT(11) NOT NULL AUTO_INCREMENT,
-	user_id INT(8) NOT NULL,
-	date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	goal char,
-	
-);
-
-
 CREATE TABLE histories(
     id INT(11) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
@@ -91,4 +82,16 @@ CREATE TABLE subjects(
     exam_address char(13) NOT NULL,
     title VARCHAR(20) NOT NULL,
     PRIMARY KEY (id)
+);
+
+
+/* 통계 테이블 */
+
+CREATE TABLE histories_statistics(
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    exam_address VARCHAR(13) DEFAULT NULL,
+    group_id INT(8) DEFAULT NULL,
+    title VARCHAR(30) NOT NULL,
+    content VARCHAR(30),
+    base_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 );
