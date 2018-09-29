@@ -15,13 +15,11 @@ router.get('/', function(req, res, next) {
 
 //1. 로그인
 router.post('/login',
-  passport.authenticate('local-login', {
-    failureRedirect: '/users/fail',
-    failureFlash: true
-  }), // 인증 실패 시 401 리턴, {} -> 인증 스트레티지
+  passport.authenticate('local-login'),
   function (req, res) {
-    res.redirect('/users/success/' + req.user.id);
-  });
+    res.send("session" + req.user.id);
+});
+
 
 //1-1. 로그인 성공
 router.get('/success/:id', function (req, res) {
