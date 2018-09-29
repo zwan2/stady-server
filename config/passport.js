@@ -18,12 +18,12 @@ module.exports = function (passport) {
     //body -x-www-form-urlencoded googleId : ?
     //콜백함수 인자 4개 필수
     passport.use('local-login', new LocalStrategy({
-        usernameField: 'Email',
+        usernameField: 'email',
         passwordField: 'password',
         passReqToCallback: true
-    }, function (req, Email, password, done) {
+    }, function (req, email, password, done) {
         var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
-        db.get().query(sqlSelectUsers, [req.body.Email, req.body.password], function (err, rows) {
+        db.get().query(sqlSelectUsers, [req.body.email, req.body.password], function (err, rows) {
             if(err) {
                 return done(err);
             }
@@ -42,12 +42,12 @@ module.exports = function (passport) {
     ));
 
     passport.use('local-join', new LocalStrategy({
-        usernameField: 'Email',
+        usernameField: 'email',
         passwordField: 'password',
         passReqToCallback: true
-    }, function (req, name, googleId, done) {
+    }, function (req, email, password, done) {
         var sqlInsertUsers = "INSERT INTO user_accounts (account_id, account_pw) VALUES (?, ?)";
-        db.get().query(sqlInsertUsers, [req.body.Email, req.body.password], function (err, rows) {
+        db.get().query(sqlInsertUsers, [req.body.email, req.body.password], function (err, rows) {
             if (err) {
                 return done(false, err);
             } 
