@@ -22,24 +22,60 @@ module.exports = function (passport) {
         passwordField: 'password',
         passReqToCallback: true
     }, function (req, email, password, done) {
+        
         var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
-        db.get().query(sqlSelectUsers, [req.body.email, req.body.password], function (err, rows) {
+        db.get().query(sqlSelectUsers, [req.body.email, req.body.password], function (err, rows1) {
             if(err) {
                 return done(err);
             }
             //실패
-            else if (rows[0] == undefined) {
+            else if (rows1[0] == undefined) {
                 return done(false, null);
             } 
             //성공
             else {
-                return done(null, {
-                    id: rows[0].id
+                console.log(req.sessionID);
+                
+                var sqlUpdateUsers = "UPDATE user_accounts set session_id = ? WHERE account_id = ? AND account_pw = ?";
+                db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, req.body.password], function (err, rows) {
+                    if (err) {
+                        return done(err);
+                    }
+                    return done(null, {
+                        id: rows1[0].id
+                    });
                 });
+                
             }
         });
        }
     ));
+
+    passport.use('local-sessionLogin', new LocalStrategy({
+        usernameField: 'sessionId',
+        passwordField: 'sessionId',
+        passReqToCallback: true
+    }, function (req, sessionId, sessionId, done) {
+
+        var sqlSelectUsers = "SELECT id FROM user_accounts WHERE session_id = ?";
+        db.get().query(sqlSelectUsers, req.body.sessionId, function (err, rows1) {
+            if (err) {
+                return done(err);
+            }
+            //실패
+            else if (rows1[0] == undefined) {
+                return done(false, null);
+            }
+            //성공
+            else {
+                console.log(req.sessionID);
+                return done(null, {
+                    id: rows1[0].id
+                });
+
+            }
+        });
+    }));
 
     passport.use('local-join', new LocalStrategy({
         usernameField: 'email',

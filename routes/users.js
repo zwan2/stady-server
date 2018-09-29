@@ -17,35 +17,30 @@ router.get('/', function(req, res, next) {
 router.post('/login',
   passport.authenticate('local-login'),
   function (req, res) {
-    res.send("session" + req.user.id);
+    var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
+    return res.send(jsonSession);
 });
 
 
-//1-1. 로그인 성공
-router.get('/success/:id', function (req, res) {
-  console.log('login success id:' + req.params.id);
-  res.send('respond with a resource');
-});
-
-//1-2. 로그인 실패
-router.get('/fail', function (req, res) {
-  res.send('login fail');
-});
-
-
-//1-3. 로그아웃
+//1-1. 로그아웃
 router.get('/logout', function (req, res) {
   req.logout();
-  res.redirect('/');
+  return res.sendStatus(200);
 })
 
+//1. 로그인
+router.post('/sessionLogin',
+  passport.authenticate('local-sessionLogin'),
+  function (req, res) {
+    var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
+    return res.send(jsonSession);
+  });
 
 //2. 회원가입
-router.post('/join', passport.authenticate('local-join', {
-  successRedirect: '/users/',
-  failureRedirect: '/users/join',
-  failureFlash: true
-}));
+router.post('/join', passport.authenticate('local-join'), 
+  function(req, res) {
+    return res.send("session"+ req.user.id);
+});
 
 
 
