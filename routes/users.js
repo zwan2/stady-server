@@ -39,7 +39,8 @@ router.post('/sessionLogin',
 //2. 회원가입
 router.post('/join', passport.authenticate('local-join'), 
   function(req, res) {
-    return res.send("session"+ req.user.id);
+    var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
+    return res.send(jsonSession);
 });
 
 

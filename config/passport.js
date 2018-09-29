@@ -5,7 +5,7 @@ var db = require('../config/db');
 module.exports = function (passport) {
 
     passport.serializeUser((user, done) => { // Strategy 성공 시 호출됨
-        console.log("session saved id:", user.id);
+        //console.log("session saved id:", user.id);
         done(null, user.id); // 여기의 user가 deserializeUser의 첫 번째 매개변수로 이동
     });
 
@@ -83,14 +83,23 @@ module.exports = function (passport) {
         passReqToCallback: true
     }, function (req, email, password, done) {
         var sqlInsertUsers = "INSERT INTO user_accounts (account_id, account_pw) VALUES (?, ?)";
-        db.get().query(sqlInsertUsers, [req.body.email, req.body.password], function (err, rows) {
+        //console.log(req.sessionID);
+        
+        db.get().query(sqlInsertUsers, [req.body.email, req.body.password], function (err, rows1) {
             if (err) {
                 return done(false, err);
             } 
             //성공
             else {
-                return done(null, {
-                    id: rows.insertId
+                var sqlUpdateUsers = "UPDATE user_accounts set session_id = ? WHERE account_id = ? AND account_pw = ?";
+                db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, req.body.password], function (err, rows) {
+                    if (err) {
+                        return done(err);
+                    }
+
+                    return done(null, {
+                        id: rows1.insertId
+                    });
                 });
             }
         });
