@@ -17,8 +17,8 @@ router.get('/', function(req, res, next) {
 router.post('/login',
   passport.authenticate('local-login'),
   function (req, res) {
-    var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
-    return res.send(jsonSession);
+    //var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
+    return res.send(req.sessionID);
 });
 
 
@@ -28,19 +28,19 @@ router.get('/logout', function (req, res) {
   return res.sendStatus(200);
 })
 
-//1. 로그인
+//1.2. 세션로그인
 router.post('/sessionLogin',
   passport.authenticate('local-sessionLogin'),
   function (req, res) {
-    var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
-    return res.send(jsonSession);
+    //var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
+    return res.send(req.sessionID);
   });
 
 //2. 회원가입
 router.post('/join', passport.authenticate('local-join'), 
   function(req, res) {
-    var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
-    return res.send(jsonSession);
+    //var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
+    return res.send(req.sessionID);
 });
 
 
