@@ -18,12 +18,12 @@ module.exports = function (passport) {
     //body -x-www-form-urlencoded googleId : ?
     //콜백함수 인자 4개 필수
     passport.use('local-login', new LocalStrategy({
-        usernameField: 'googleId',
-        passwordField: 'googleId',
+        usernameField: 'Email',
+        passwordField: 'password',
         passReqToCallback: true
-    }, function (req, googleId, googleId, done) {
-        var sqlSelectUsers = "SELECT id FROM users WHERE google_id = ?";
-        db.get().query(sqlSelectUsers, req.body.googleId, function (err, rows) {
+    }, function (req, Email, password, done) {
+        var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
+        db.get().query(sqlSelectUsers, [req.body.Email, req.body.password], function (err, rows) {
             if(err) {
                 return done(err);
             }
@@ -42,12 +42,12 @@ module.exports = function (passport) {
     ));
 
     passport.use('local-join', new LocalStrategy({
-        usernameField: 'name',
-        passwordField: 'googleId',
+        usernameField: 'Email',
+        passwordField: 'password',
         passReqToCallback: true
     }, function (req, name, googleId, done) {
-        var sqlInsertUsers = "INSERT INTO users (google_id, name) VALUES (?, ?)";
-        db.get().query(sqlInsertUsers, [req.body.googleId, req.body.name], function (err, rows) {
+        var sqlInsertUsers = "INSERT INTO user_accounts (account_id, account_pw) VALUES (?, ?)";
+        db.get().query(sqlInsertUsers, [req.body.Email, req.body.password], function (err, rows) {
             if (err) {
                 return done(false, err);
             } 
@@ -60,22 +60,5 @@ module.exports = function (passport) {
         });
     }));
     
-    /*
-    passport.use('local-login', new LocalStrategy({
-        usernameField: 'username',
-        passwordField: 'password',
-        passReqToCallback: true //인증을 수행하는 인증 함수로 HTTP request를 그대로  전달할지 여부를 결정한다
-    }, function (req, username, password, done) {
-        console.log('h');
-        
-        if (username === '1' && password === 'password') {
-            return done(null, {
-                'id': username,
-            });
-        } else {
-            return done(false, null)
-        }
-    }));
-    */
     
 };

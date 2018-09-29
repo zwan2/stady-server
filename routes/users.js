@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../config/db');
+var passport = require('passport'),
+  LocalStrategy = require('passport-local').Strategy;
 
 
 
@@ -8,6 +10,44 @@ var db = require('../config/db');
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });
+
+
+
+//1. 로그인
+router.post('/login',
+  passport.authenticate('local-login', {
+    failureRedirect: '/users/fail',
+    failureFlash: true
+  }), // 인증 실패 시 401 리턴, {} -> 인증 스트레티지
+  function (req, res) {
+    res.redirect('/users/success/' + req.user.id);
+  });
+
+//1-1. 로그인 성공
+router.get('/success/:id', function (req, res) {
+  console.log('login success id:' + req.params.id);
+  res.send('respond with a resource');
+});
+
+//1-2. 로그인 실패
+router.get('/fail', function (req, res) {
+  res.send('login fail');
+});
+
+
+//1-3. 로그아웃
+router.get('/logout', function (req, res) {
+  req.logout();
+  res.redirect('/');
+})
+
+
+//2. 회원가입
+router.post('/join', passport.authenticate('local-join', {
+  successRedirect: '/users/',
+  failureRedirect: '/users/join',
+  failureFlash: true
+}));
 
 
 

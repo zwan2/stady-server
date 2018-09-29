@@ -4,6 +4,11 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
+//custom
+var session = require('express-session');
+var passport = require('passport'),
+  LocalStrategy = require('passport-local').Strategy;
+var flash = require('connect-flash');
 
 //db
 var db = require('./config/db');
@@ -17,6 +22,20 @@ db.connect(function (err) {
 
 
 var app = express();
+
+//custom
+//session
+app.use(session({
+  secret: 'travr20160308',
+  resave: false,
+  saveUninitialized: true
+}));
+
+//passport
+require('./config/passport')(passport);
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(flash());
 
 //socket
 var http = require('http').Server(app);
@@ -33,11 +52,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
+
 app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/exams', require('./routes/exams'));
 app.use('/stopwatch', require('./routes/stopwatch'));
 app.use('/groups', require('./routes/groups'));
+app.use('/statistics', require('./routes/statistics'));
 
 
 // catch 404 and forward to error handler
@@ -87,5 +109,11 @@ http.listen(3000, function () {
 });
 
 
+//GLOBAL
+global.isAuthenticated = function (req, res, next) {
+  if (req.isAuthenticated())
+    return next();
+  res.redirect('/users/');
+};
 
 module.exports = app;
