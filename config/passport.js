@@ -6,7 +6,7 @@ module.exports = function (passport) {
 
     passport.serializeUser((user, done) => { // Strategy 성공 시 호출됨
         //console.log("session saved id:", user.id);
-        done(null, user.id); // 여기의 user가 deserializeUser의 첫 번째 매개변수로 이동
+        done(null, user); // 여기의 user가 deserializeUser의 첫 번째 매개변수로 이동
     });
 
     passport.deserializeUser((user, done) => { // 매개변수 user는 serializeUser의 done의 인자 user를 받은 것
@@ -34,7 +34,7 @@ module.exports = function (passport) {
             } 
             //성공
             else {
-                console.log(req.sessionID);
+                //console.log(req.sessionID);
                 
                 var sqlUpdateUsers = "UPDATE user_accounts set session_id = ? WHERE account_id = ? AND account_pw = ?";
                 db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, req.body.password], function (err, rows) {
@@ -82,27 +82,30 @@ module.exports = function (passport) {
         passwordField: 'password',
         passReqToCallback: true
     }, function (req, email, password, done) {
-        var sqlInsertUsers = "INSERT INTO user_accounts (account_id, account_pw) VALUES (?, ?)";
-        //console.log(req.sessionID);
+        //중복방지
+        var sqlInsertUsers = "INSERT IGNORE INTO user_accounts (account_id, account_pw, session_id) VALUES (?, ?, ?)";
+        var sqlInsertData = "INSERT IGNORE INTO user_data (user_id, name) VALUES (?, ?)";
+        var sqlInsertGoals = "INSERT IGNORE INTO user_goals (user_id) VALUES (?)";
         
-        db.get().query(sqlInsertUsers, [req.body.email, req.body.password], function (err, rows1) {
-            if (err) {
-                return done(false, err);
-            } 
-            //성공
-            else {
-                var sqlUpdateUsers = "UPDATE user_accounts set session_id = ? WHERE account_id = ? AND account_pw = ?";
-                db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, req.body.password], function (err, rows) {
-                    if (err) {
-                        return done(err);
-                    }
+        db.get().query(sqlInsertUsers, [req.body.email, req.body.password, req.sessionID], function (err, rows1) {  
+            if (err) return done(err);
+            
+            db.get().query(sqlInsertData, [rows1.insertId, req.body.email], function (err, rows2) {
+                if (err) return done(err);
 
+                db.get().query(sqlInsertGoals, rows1.insertId, function (err, rows3) {
+                    if (err) return done(err);
                     return done(null, {
                         id: rows1.insertId
                     });
                 });
-            }
+            });
+        
+            
+        
         });
+
+      
     }));
     
     

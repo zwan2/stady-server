@@ -8,6 +8,38 @@ router.get('/', function (req, res, next) {
     res.send('respond with a resource');
 });
 
+//REQ: userId RES: arr[], total_goal, subjects_goal
+router.get('/loadMain', function (req, res, next) {
+    var querySelectGoals = "SELECT total_goal, subjects_goal FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
+    var querySelectHistory = "SELECT subject_id, study_id, SUM(term) " + "term_sum" + " FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_data d WHERE d.user_id = ?) GROUP BY subject_id AND study_id";
+    //var querySelectHistory = "SELECT exam_address FROM user_data d WHERE d.user_id = ?";
+    db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows1) {
+        if (err) {
+            return res.status(400).send(err);
+        } else {
+
+            db.get().query(querySelectHistory, [req.query.userId, req.query.userId], function (err, rows2) {
+                //console.log(rows1[0]);
+                    if (err) {
+                        return res.status(400).send(err);
+                    } else {
+                  
+                    if (rows2 == 0) {
+                        return res.status(200).send(JSON.stringify(rows1[0]));
+                    } else {
+                        var rows = Object.assign(rows1[0], rows2);
+                        console.log(rows);
+                        return res.status(200).send(JSON.stringify(rows));
+                    }
+                }
+
+            });
+        }
+
+    });
+});
+
+/*
 //REQ: userId, examAddress
 //유저의 골, 최근 정보 가져오기
 //과목별 공부방법별 텀
@@ -38,6 +70,7 @@ router.get('/loadMain', function (req, res, next) {
 
     });
 });
+*/
 
 // 스톱워치 정지 기능
 // REQ: userId, examaddress, subjectId, studyId, startPoint, endPoint, term

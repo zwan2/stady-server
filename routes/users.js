@@ -13,38 +13,47 @@ router.get('/', function(req, res, next) {
 
 
 
-//1. 로그인
+//1.1. 로그인
 router.post('/login',
   passport.authenticate('local-login'),
   function (req, res) {
-    //var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
-    return res.send(req.sessionID);
+    var jsonSession = {
+      userId: req.user.id,
+      sessionId: req.sessionID
+    }
+    return res.status(200).send(JSON.stringify(jsonSession));
 });
 
 
-//1-1. 로그아웃
+//1.2. 로그아웃
 router.get('/logout', function (req, res) {
   req.logout();
   return res.sendStatus(200);
 })
 
-//1.2. 세션로그인
+//1.3. 세션로그인
 router.post('/sessionLogin',
   passport.authenticate('local-sessionLogin'),
   function (req, res) {
-    //var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
-    return res.send(req.sessionID);
+    var jsonSession = {
+      userId: req.user.id,
+      sessionId: req.sessionID
+    }
+    return res.status(200).send(JSON.stringify(jsonSession));
   });
 
 //2. 회원가입
 router.post('/join', passport.authenticate('local-join'), 
   function(req, res) {
-    //var jsonSession = "{ uid:" + req.user.id + ", sid:" + req.sessionID + " }"
-    return res.send(req.sessionID);
+    var jsonSession = {
+      userId: req.user.id,
+      sessionId: req.sessionID
+    }
+    return res.status(200).send(JSON.stringify(jsonSession));
 });
 
 
-
+/* /stopwatch로 이전했음
 //REQ: userId RES: arr[], total_goal, subjects_goal
 router.get('/loadMain', function (req, res, next) {
   var querySelectGoal = "SELECT total_goal, subjects_goal FROM user_goals WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_data d WHERE d.user_id = ?) ORDER BY reg_time DESC LIMIT 1";
@@ -73,6 +82,7 @@ router.get('/loadMain', function (req, res, next) {
 
   });
 });
+*/
 
 //최초등록
 
