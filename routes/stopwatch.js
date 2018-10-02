@@ -9,6 +9,7 @@ router.get('/', function (req, res, next) {
 });
 
 //REQ: userId RES: arr[], total_goal, subjects_goal
+//메인화면 데이터 로딩
 router.get('/loadMain', function (req, res, next) {
     var querySelectGoals = "SELECT total_goal, subjects_goal FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
     var querySelectHistory = "SELECT subject_id, study_id, SUM(term) " + "term_sum" + " FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_data d WHERE d.user_id = ?) GROUP BY subject_id AND study_id";
@@ -39,6 +40,16 @@ router.get('/loadMain', function (req, res, next) {
     });
 });
 
+//REQ: userId, totalGoal
+router.post('/setTotalGoal', function (req, res, next) {
+   
+    var queryInsertGoals = "INSERT INTO user_goals (user_id, exam_address, total_goal) VALUES(?, (SELECT exam_address FROM user_data WHERE user_id = ?), ?)";
+    db.get().query(queryInsertGoals, [req.body.userId, req.body.userId, req.body.totalGoal], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        return res.status(200).send(JSON.stringify(rows));
+    });
+
+});
 /*
 //REQ: userId, examAddress
 //유저의 골, 최근 정보 가져오기

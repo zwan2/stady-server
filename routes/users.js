@@ -84,6 +84,5 @@ router.get('/loadMain', function (req, res, next) {
 });
 */
 
-//최초등록
 
 module.exports = router;
