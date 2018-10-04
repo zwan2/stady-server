@@ -15,6 +15,7 @@ CREATE TABLE user_data(
     user_id INT(8) NOT NULL,
     name CHAR(10) NOT NULL,
     exam_address VARCHAR(13) DEFAULT NULL,
+    subject_ids VARCHAR(30) DEFAULT NULL,
     group_ids VARCHAR(255) DEFAULT NULL,
 	PRIMARY KEY (id)
 );
