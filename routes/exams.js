@@ -50,7 +50,7 @@ router.post('/saveCondition', function(req, res, next) {
     console.log(req.body.examAddress);
     console.log(req.body.userId);
     
-    var queryUpdateData = "UPDATE user_data SET exam_address = ?, subject_ids = ? WHERE user_id = ?";
+    var queryUpdateData = "UPDATE user_settings SET exam_address = ?, subject_ids = ? WHERE user_id = ?";
     db.get().query(queryUpdateData, [req.body.examAddress, req.body.subjectIds, req.body.userId], function (err, rows) {
         if (err) return res.status(400).send(err);
         return res.sendStatus(200);

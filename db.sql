@@ -10,7 +10,7 @@ CREATE TABLE user_accounts(
 	PRIMARY KEY (id)
 );
 
-CREATE TABLE user_data(
+CREATE TABLE user_settings(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
     name CHAR(10) NOT NULL,
@@ -36,11 +36,11 @@ CREATE TABLE histories(
     id INT(11) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
     exam_address VARCHAR(13) NOT NULL,
-    subject_id INT(3) NOT NULL,
-    study_id INT(3) NOT NULL,
+    subject_id INT(5) NOT NULL,
+    study_id INT(2) NOT NULL,
     start_point TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     end_point TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    term INT(8) DEFAULT 0,
+    term INT(6) DEFAULT 0,
     PRIMARY KEY (id)
 );
 

@@ -84,7 +84,7 @@ module.exports = function (passport) {
     }, function (req, email, password, done) {
         //중복방지
         var sqlInsertUsers = "INSERT IGNORE INTO user_accounts (account_id, account_pw, session_id) VALUES (?, ?, ?)";
-        var sqlInsertData = "INSERT IGNORE INTO user_data (user_id, name) VALUES (?, ?)";
+        var sqlInsertData = "INSERT IGNORE INTO user_settings (user_id, name) VALUES (?, ?)";
         var sqlInsertGoals = "INSERT IGNORE INTO user_goals (user_id) VALUES (?)";
         
         db.get().query(sqlInsertUsers, [req.body.email, req.body.password, req.sessionID], function (err, rows1) {  

@@ -40,8 +40,8 @@ router.get('/loadPeriodData', function(req, res, next) {
     var base_date = req.query.year + '-' + req.query.month + '-%';
     console.log(base_date);
     
-    var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_data WHERE user_id = ?) AND end_point LIKE ? GROUP BY DATE_FORMAT(end_point, '%Y-%m'), exam_address, subject_id, study_id";
-    //var querySelectHistories = "SELECT exam_address FROM user_data WHERE user_id = ?";
+    var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) AND end_point LIKE ? GROUP BY DATE_FORMAT(end_point, '%Y-%m'), exam_address, subject_id, study_id";
+    //var querySelectHistories = "SELECT exam_address FROM user_settings WHERE user_id = ?";
     db.get().query(querySelectHistories, [req.query.userId, req.query.userId, base_date], function (err, rows) {
         if (err) {
             return res.status(400).send(err);
