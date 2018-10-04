@@ -3,6 +3,7 @@ var router = express.Router();
 var db = require('../config/db');
 
 //통계-요약탭
+//history에서 7일동안, 
 router.get('/loadSummaryData', function(req, res, next) {
     var defaultId = "1,2";
 
@@ -39,9 +40,9 @@ router.get('/loadPeriodData', function(req, res, next) {
     var base_date = req.query.year + '-' + req.query.month + '-%';
     console.log(base_date);
     
-    var querySelectHistories = "SELECT exam_address, subject_id, study_id, DATE_FORMAT(end_point, '%Y-%m') m, SUM(term), COUNT(term) FROM histories WHERE user_id = ? AND end_point LIKE ? GROUP BY m, exam_address, subject_id, study_id";
-    
-    db.get().query(querySelectHistories, [req.query.userId, base_date], function (err, rows) {
+    var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_data WHERE user_id = ?) AND end_point LIKE ? GROUP BY DATE_FORMAT(end_point, '%Y-%m'), exam_address, subject_id, study_id";
+    //var querySelectHistories = "SELECT exam_address FROM user_data WHERE user_id = ?";
+    db.get().query(querySelectHistories, [req.query.userId, req.query.userId, base_date], function (err, rows) {
         if (err) {
             return res.status(400).send(err);
         } else {
