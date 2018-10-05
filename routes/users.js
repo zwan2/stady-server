@@ -54,9 +54,9 @@ router.post('/join', passport.authenticate('local-join'),
 
 
 /* /stopwatch로 이전했음
-//REQ: userId RES: arr[], total_goal, subjects_goal
+//REQ: userId RES: arr[], total_goal, subject_goals
 router.get('/loadMain', function (req, res, next) {
-  var querySelectGoal = "SELECT total_goal, subjects_goal FROM user_goals WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) ORDER BY reg_time DESC LIMIT 1";
+  var querySelectGoal = "SELECT total_goal, subject_goals FROM user_goals WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) ORDER BY reg_time DESC LIMIT 1";
   var querySelectHistory = "SELECT subject_id, study_id, SUM(term) " + "term_sum" + " FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) GROUP BY subject_id AND study_id";
   //var querySelectHistory = "SELECT exam_address FROM user_settings d WHERE d.user_id = ?";
   db.get().query(querySelectGoal, [req.query.userId, req.query.userId], function (err, rows1) {

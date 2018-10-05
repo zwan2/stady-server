@@ -26,7 +26,7 @@ CREATE TABLE user_goals(
     user_id INT(8) NOT NULL,
     exam_address VARCHAR(13) DEFAULT NULL,
     total_goal INT(8) DEFAULT 0,
-    subjects_goal VARCHAR(255) DEFAULT NULL,
+    subject_goals VARCHAR(255) DEFAULT NULL,
     reg_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
