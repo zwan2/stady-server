@@ -13,11 +13,11 @@ router.get('/', function (req, res, next) {
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
 router.get('/loadMain', function (req, res, next) {
     
-    //1. loadSettings
+    //[1] loadSettings
     var examTitle;
     var querySelectSettings = "SELECT exam_address, subject_ids FROM user_settings WHERE user_id = ?";
     var querySelectExamCat = "(SELECT title FROM exam_cat0 WHERE id = ?) UNION (SELECT title FROM exam_cat1 WHERE id = ?) UNION (SELECT title FROM exam_cat2 WHERE id = ?)"
-    //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
+       //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
         var examAddress = rows1[0].exam_address.split('_');
@@ -31,23 +31,22 @@ router.get('/loadMain', function (req, res, next) {
                 examTitle = rows2[1].title + " · " + rows2[2].title;
             }
             
-            //과목명
             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
+            var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
             db.get().query(querySelectSubjects, function (err, rows3) {
-
-
-
-                //2. LoadHistory
-                var nowTime = moment().format('YYYY-MM-DD');
-                var querySelectGoals = "SELECT today_goal, subject_goals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
-                var querySelectHistory = "SELECT subject_id, SUM(term) " + "subject_total" + " FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id";
+                if (err) return res.status(400).send(err);
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
+                    if (err) return res.status(400).send(err);
+
+                    
+                    //[2] LoadHistory
+                    var nowTime = moment().format('YYYY-MM-DD');
+                    var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id";
                     if (err) return res.status(400).send(err);
                     db.get().query(querySelectHistory, [req.query.userId, req.query.userId, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
-                        for (var i in rows5) {
-                            console.log(rows5[i].subject_total);                        
+                        for (var i in rows5) {                      
                             todayTotal = todayTotal + rows5[i].subject_total;
                         }
 
