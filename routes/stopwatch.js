@@ -39,12 +39,17 @@ router.get('/loadMain', function (req, res, next) {
 
                 //2. LoadHistory
                 var nowTime = moment().format('YYYY-MM-DD');
-                var querySelectGoals = "SELECT total_goal, subject_goals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
-                var querySelectHistory = "SELECT subject_id, study_id, SUM(term) " + "term_sum" + " FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id AND study_id";
+                var querySelectGoals = "SELECT today_goal, subject_goals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
+                var querySelectHistory = "SELECT subject_id, SUM(term) " + "subject_total" + " FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id";
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
                     if (err) return res.status(400).send(err);
                     db.get().query(querySelectHistory, [req.query.userId, req.query.userId, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
+                        var todayTotal = 0;
+                        for (var i in rows5) {
+                            console.log(rows5[i].subject_total);                        
+                            todayTotal = todayTotal + rows5[i].subject_total;
+                        }
 
                         var loadSettingsResult = {
                             "settings": {
@@ -55,7 +60,8 @@ router.get('/loadMain', function (req, res, next) {
                             },
                             "history": {
                                 "goals" : rows4[0],
-                                "todayHistory": rows5
+                                "todayTotal": todayTotal, 
+                                "subjectHistory": rows5
                             }
                         }
 
@@ -75,7 +81,7 @@ router.get('/loadMain', function (req, res, next) {
 //REQ: userId, totalGoal
 router.post('/setTotalGoal', function (req, res, next) {
    
-    var queryInsertGoals = "INSERT INTO user_goals (user_id, exam_address, total_goal) VALUES(?, (SELECT exam_address FROM user_settings WHERE user_id = ?), ?)";
+    var queryInsertGoals = "INSERT INTO user_goals (user_id, exam_address, today_goal) VALUES(?, (SELECT exam_address FROM user_settings WHERE user_id = ?), ?)";
     db.get().query(queryInsertGoals, [req.body.userId, req.body.userId, req.body.totalGoal], function (err, rows) {
         if (err) return res.status(400).send(err);
         return res.status(200).send(JSON.stringify(rows));
