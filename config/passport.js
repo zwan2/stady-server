@@ -95,9 +95,15 @@ module.exports = function (passport) {
 
                 db.get().query(sqlInsertGoals, rows1.insertId, function (err, rows3) {
                     if (err) return done(err);
-                    return done(null, {
-                        id: rows1.insertId
-                    });
+     
+                    if(rows1.insertId == 0) {
+                        return done(false, null);
+                    } else {
+                        return done(null, {
+                            id: rows1.insertId
+                        });
+                    }
+
                 });
             });
         

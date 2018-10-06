@@ -20,7 +20,7 @@ router.get('/loadMain', function (req, res, next) {
     //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
-        if(rows1[0]==0) {
+        if(rows1[0]==undefined) {
             return res.sendStatus(400);
         } else {
             examAddress = rows1[0].exam_address.split('_');
@@ -38,10 +38,10 @@ router.get('/loadMain', function (req, res, next) {
             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
             db.get().query(querySelectSubjects, function (err, rows3) {
                 if (err) return res.status(400).send(err);
-                
+
                 var nowTime = moment().format('YYYY-MM-DD');
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
-                var querySelectHistory = "SELECT subject_id, SUM(term) AS subject_total FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id";
+                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id";
                 //[2] LoadHistory
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
                     if (err) return res.status(400).send(err);

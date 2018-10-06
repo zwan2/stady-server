@@ -1,20 +1,20 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../config/db');
+var moment = require('moment');
 
 //통계-요약탭
-//history에서 7일동안, 
-router.get('/loadSummaryData', function(req, res, next) {
-    var defaultId = "1,2";
 
-    var querySelectStatistics = "SELECT id, title, content, base_date FROM histories_statistics WHERE id IN (?)";
-    db.get().query(querySelectStatistics, defaultId, function (err, rows1) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
-            return res.status(200).send(JSON.stringify(rows));
-        }
+router.get('/loadSummaryData', function(req, res, next) {
+    var nowTime = moment().format('YYYY-MM-DD');
+    console.log(nowTime);
+    
+    var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) AND end_point > ? GROUP BY subject_id, study_id";
+    db.get().query(querySelectHistories, [req.query.userId, req.query.userId, nowTime], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        return res.status(200).send(JSON.stringify(rows));
     });
+
 });
 
 //시험별 통계치(통계명, 통계값) 불러옴
@@ -38,7 +38,7 @@ router.get('/loadExamData', function(req,res,next) {
 //REQ: userId, year(INT, 2018), month(INT, 09)
 router.get('/loadPeriodData', function(req, res, next) {
     var base_date = req.query.year + '-' + req.query.month + '-%';
-    console.log(base_date);
+    //console.log(base_date);
     
     var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) AND end_point LIKE ? GROUP BY DATE_FORMAT(end_point, '%Y-%m'), exam_address, subject_id, study_id";
     //var querySelectHistories = "SELECT exam_address FROM user_settings WHERE user_id = ?";
