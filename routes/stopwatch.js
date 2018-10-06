@@ -49,7 +49,7 @@ router.get('/loadMain', function (req, res, next) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
                         for (var i in rows5) {                      
-                            todayTotal = todayTotal + rows5[i].subject_total;
+                            todayTotal = todayTotal + rows5[i].subjectTotal;
                         }
 
                         
