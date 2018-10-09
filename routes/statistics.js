@@ -4,25 +4,53 @@ var db = require('../config/db');
 var moment = require('moment');
 
 
-function loadDdayData(tartgetTime, userId) {
+var loadDayStat = function (targetTime, userId) {
+    
     if(targetTime == undefined) {
         var targetTime = moment().format('YYYY-MM-DD');
     }
-    var querySelectHistories = "SELECT SUM(term) AS total_time, SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time <= ? + 1 LIMIT 1) AS goal_completion_rate, " +
-        + "SUM(term) / COUNT(term) AS concentration_time FROM histories " +
-        + "WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
-
-    db.get().query(querySelectHistories, [req.query.targetTime, req.query.userId, req.query.targetTime], function (err, rows) {
-        if (err) return res.status(400).send(err);
-        return res.status(200).send(JSON.stringify(rows));
-    });
+    
+    var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
+    
+    var querySelectHistories = "SELECT SUM(term) AS total_time, (SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1))"
+    + "AS goal_completion_rate, (SUM(term) / COUNT(term)) AS concentration_time FROM histories WHERE user_id = ?"
+    + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
+    
+    db.get().query(querySelectHistories, [tomorrowTime, userId, userId, targetTime], function (err, rows) {
+        if (err) {
+            return err;
+        } else {
+            console.log(rows);
+            console.log('a');
+            
+            return JSON.stringify(rows);
+        }
+    });     
+  
+    
 }
 
-//REQ: targetTime(미지정시 오늘), userId
 //1일치 정보(총공부시간,목표달성률,연속집중력) 불러오기
-router.get('loadDay', function(req, res, next) {
-    var result1 = loadDayData(req.query.targetTime, req.query.userId);
+//req: targetTime, userId
+router.get('/loadDayStat', function(req, res, next) {
+    loadDayStat('2018-10-09', 2);
+    //console.log(a);
+    
+    /*
+    var tomorrowTime = moment(req.query.targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
+    
+    var querySelectHistories = "SELECT SUM(term) AS total_time, (SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1))"
+    + "AS goal_completion_rate, (SUM(term) / COUNT(term)) AS concentration_time FROM histories WHERE user_id = ?"
+    + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
 
+    db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows) {
+        if (err) {
+            return res.status(400).send(err);
+        } else {
+            return res.status(200).send(JSON.stringify(rows));
+        }
+    });     
+    */
 });
 
 router.get('/loadSummaryData', function(req, res, next) {
