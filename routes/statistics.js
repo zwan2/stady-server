@@ -3,54 +3,96 @@ var router = express.Router();
 var db = require('../config/db');
 var moment = require('moment');
 
-
-var loadDayStat = function (targetTime, userId) {
+/*
+function loadDayStat (targetTime, userId, callback) {
     
     if(targetTime == undefined) {
         var targetTime = moment().format('YYYY-MM-DD');
     }
     
+
     var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
-    
-    var querySelectHistories = "SELECT SUM(term) AS total_time, (SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1))"
-    + "AS goal_completion_rate, (SUM(term) / COUNT(term)) AS concentration_time FROM histories WHERE user_id = ?"
-    + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
-    
+
+    var querySelectHistories = "SELECT SUM(term) AS total_time, (SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1))" +
+        "AS goal_completion_rate, (SUM(term) / COUNT(term)) AS concentration_time FROM histories WHERE user_id = ?" +
+        "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
+
     db.get().query(querySelectHistories, [tomorrowTime, userId, userId, targetTime], function (err, rows) {
-        if (err) {
-            return err;
-        } else {
-            console.log(rows);
-            console.log('a');
-            
-            return JSON.stringify(rows);
-        }
-    });     
+        //if (err) callback(err, null);
+        console.log(rows);
+
+        callback(null, JSON.stringify(rows));
+        //return JSON.stringify(rows);
+    });
   
     
 }
+*/
 
 //1일치 정보(총공부시간,목표달성률,연속집중력) 불러오기
 //req: targetTime, userId
 router.get('/loadDayStat', function(req, res, next) {
-    loadDayStat('2018-10-09', 2);
-    //console.log(a);
     
-    /*
     var tomorrowTime = moment(req.query.targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
     
-    var querySelectHistories = "SELECT SUM(term) AS total_time, (SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1))"
-    + "AS goal_completion_rate, (SUM(term) / COUNT(term)) AS concentration_time FROM histories WHERE user_id = ?"
+    //SELECT common
+    var querySelectHistories = "SELECT SUM(term) AS total, (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1) AS goal,"
+    +"(SELECT subject_ids FROM user_settings WHERE user_id = ?) AS subjectIds, COUNT(term) term_count FROM histories WHERE user_id = ?"
     + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
+    
+    //SELECT subject
+    var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?"
+                                +" AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)"
+                                +" AND h.end_point >= ? GROUP BY h.subject_id, h.study_id";
+                                
+    db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
+        if (err) return res.status(400).send(err);
+            
+        db.get().query(querySelectHistories2, [req.query.userId, req.query.userId, req.query.targetTime], function (err, rows2) {
+            if (err) return res.status(400).send(err);
 
-    db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
-            return res.status(200).send(JSON.stringify(rows));
-        }
-    });     
-    */
+            var subjectIds = rows1[0].subjectIds;
+            var subjectIdsArray = subjectIds.split(",");
+
+            var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + subjectIds + ")";
+            db.get().query(querySelectSubjects, function (err, rows3) {
+                if (err) return res.status(400).send(err);
+
+                var names = [], totals = [];
+                for (var i = 0; i < rows3.length; i++) {
+                    names.push(rows3[i].title);
+                }
+                
+                for (var i = 0; i < subjectIdsArray.length; i++) {
+                    var terms  = [0, 0, 0, 0];
+                    for (var j =0; j < rows2.length; j++) {
+                        if (subjectIdsArray[i] == rows2[j].subject_id) {
+                            terms[rows2[j].study_id] = rows2[j].term;
+                        }
+                    }
+                    totals.push(terms);
+                }
+
+                var subject = {
+                    totals: totals,
+                    names: names
+                }
+                var total = rows1[0].total == null ? 0 : rows1[0].total;
+                var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
+                var continuousConcentration = parseInt(total/termCount);
+
+                var loadDayStatResult = {
+                    total: rows1[0].total == null ? 0 : rows1[0].total,
+                    goal: rows1[0].goal == null ? 0 : rows1[0].goal,
+                    achievementRate: rows1[0].total / rows1[0].goal * 100,
+                    continuousConcentration: continuousConcentration == null || "null" ? 0 : continuousConcentration,
+                    subject: subject
+                }
+                return res.status(200).send(loadDayStatResult);
+                
+            });
+        });
+    });
 });
 
 router.get('/loadSummaryData', function(req, res, next) {
