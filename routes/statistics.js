@@ -3,6 +3,90 @@ var router = express.Router();
 var db = require('../config/db');
 var moment = require('moment');
 
+function loadRank(avgT, avgAR, avgCC) {
+    // var avgT = 3600; //Total
+    // var avgAR = 90.6; //AchievementRate
+    // var avgCC = 1800; //ContinuousConcentration
+
+    var scoreT = getTotalScore(avgT);
+    var scoreAR = getAchievementRateScore(avgAR);
+    var scoreCC = getContinuousConcentrationScore(avgCC);
+
+    return getRank(scoreT + scoreAR + scoreCC);;
+}
+
+function getTotalScore(total) {
+    if (total >= 12 * 3600) {
+        return 10;
+    } else if (total >= 10 * 3600) {
+        return 9;
+    } else if (total >= 8 * 3600) {
+        return 8;
+    } else if (total >= 6 > 3600) {
+        return 7;
+    } else if (total >= 4 * 3600) {
+        return 6;
+    } else if (total >= 2 * 3600) {
+        return 5;
+    } else {
+        return 3;
+    }
+}
+
+function getAchievementRateScore(ar) {
+    if (ar >= 90) {
+        return 10;
+    } else if (ar >= 80) {
+        return 9;
+    } else if (ar >= 70) {
+        return 8;
+    } else if (ar >= 60) {
+        return 7;
+    } else if (ar >= 50) {
+        return 6;
+    } else if (ar >= 40) {
+        return 5;
+    } else {
+        return 0;
+    }
+}
+
+function getContinuousConcentrationScore(cc) {
+    if (cc >= 2 * 3600) {
+        return 10;
+    } else if (cc >= 1.5 * 3600) {
+        return 9;
+    } else if (cc >= 1.25 * 3600) {
+        return 8;
+    } else if (cc >= 1 * 3600) {
+        return 7;
+    } else if (cc >= 0.75 * 3600) {
+        return 6;
+    } else if (cc >= 0.5 * 3600) {
+        return 5;
+    } else {
+        return 0;
+    }
+}
+
+function getRank(score) {
+    if (score >= 29) {
+        return "A+";
+    } else if (score >= 27) {
+        return "A";
+    } else if (score >= 24) {
+        return "B+";
+    } else if (score >= 21) {
+        return "B";
+    } else if (score >= 18) {
+        return "C+";
+    } else if (score >= 15) {
+        return "C";
+    } else {
+        return "F";
+    }
+}
+
 /*
 function loadDayStat (targetTime, userId, callback) {
     
@@ -80,13 +164,11 @@ router.get('/loadDayStat', function(req, res, next) {
                 var total = rows1[0].total == null ? 0 : rows1[0].total;
                 var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
                 
-                console.log(total + "--"+termCount);
-                
+
                 if (termCount == 0) {
                     termCount = 1;
                 }
                 var continuousConcentration = parseInt(total/termCount);
-                console.log(continuousConcentration);
                 
                 var loadDayStatResult = {
                     total: rows1[0].total == null ? 0 : rows1[0].total,
@@ -102,50 +184,23 @@ router.get('/loadDayStat', function(req, res, next) {
     });
 });
 
-router.get('/loadSummaryData', function(req, res, next) {
-    var nowTime = moment().format('YYYY-MM-DD');
-    console.log(nowTime);
-    
-    var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) AND end_point > ? GROUP BY subject_id, study_id";
-    db.get().query(querySelectHistories, [req.query.userId, req.query.userId, nowTime], function (err, rows) {
+router.get('/loadRank', function (req, res, next) {
+
+    var userId = req.query.userId;
+
+    var selectMonthlyTotal = "SELECT SUM(term) AS total FROM histories WHERE user_id = ? AND " +
+                            "date(end_point) >= date(subdate(now(), INTERVAL 30 DAY)) AND " +
+                            "date(end_point) <= date(now())";
+
+    db.get().query(selectMonthlyTotal, userId, function (err, rows) {
         if (err) return res.status(400).send(err);
-        return res.status(200).send(JSON.stringify(rows));
+
+        var avgT = rows[0].total;
+
+        return res.status(200).send(loadRank(avgT, 90, 7200));
     });
 
 });
 
-//시험별 통계치(통계명, 통계값) 불러옴
-//(확장성을 위해서 통계명-통계값 쌍을 불러오도록 했는데.. 순서를 서로 합의하고 통계값만 주루룩 불러와도 됨.)
-//통계 - 시험탭
-router.get('/loadExamData', function(req,res,next) {
-    var querySelectStatistics = "SELECT id, title, content, base_date FROM histories_statistics WHERE exam_address = ?";
-    db.get().query(querySelectStatistics, req.query.examAddress, function (err, rows1) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
-           return res.status(200).send(JSON.stringify(rows));
-        }
-    });
-});
-
-
-//[{"exam_address":"0,0,0","subject_id":1,"study_id":0,"m":"2018-09","SUM(term)":8,"count(term)":1},{"exam_address":"0_0_0","subject_id":1,"study_id":0,"m":"2018-09","SUM(term)":100669,"count(term)":41},{"exam_address":"0_0_0","subject_id":1,"study_id":2,"m":"2018-09","SUM(term)":1,"count(term)":1},{"exam_address":"0_0_0","subject_id":1,"study_id":3,"m":"2018-09","SUM(term)":1,"count(term)":1},{"exam_address":"0_0_0","subject_id":2,"study_id":0,"m":"2018-09","SUM(term)":2487,"count(term)":12},{"exam_address":"0_0_0","subject_id":3,"study_id":0,"m":"2018-09","SUM(term)":12,"count(term)":4},{"exam_address":"0_0_0","subject_id":4,"study_id":0,"m":"2018-09","SUM(term)":4,"count(term)":1},{"exam_address":"0_0_0","subject_id":5,"study_id":0,"m":"2018-09","SUM(term)":7,"count(term)":1},{"exam_address":"0_0_0","subject_id":6,"study_id":0,"m":"2018-09","SUM(term)":15,"count(term)":1},{"exam_address":"1_30_2","subject_id":4,"study_id":1,"m":"2018-09","SUM(term)":1620,"count(term)":27}]
-//history에서 바로 불러옴.
-//월별 통계 불러오기(임시)
-//REQ: userId, year(INT, 2018), month(INT, 09)
-router.get('/loadPeriodData', function(req, res, next) {
-    var base_date = req.query.year + '-' + req.query.month + '-%';
-    //console.log(base_date);
-    
-    var querySelectHistories = "SELECT subject_id, study_id, SUM(term) total_time, COUNT(term) stop_count FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) AND end_point LIKE ? GROUP BY DATE_FORMAT(end_point, '%Y-%m'), exam_address, subject_id, study_id";
-    //var querySelectHistories = "SELECT exam_address FROM user_settings WHERE user_id = ?";
-    db.get().query(querySelectHistories, [req.query.userId, req.query.userId, base_date], function (err, rows) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
-            return res.status(200).send(JSON.stringify(rows));
-        }
-    });  
-});
 
 module.exports = router;
