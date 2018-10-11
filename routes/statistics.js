@@ -165,17 +165,22 @@ router.get('/loadDayStat', function(req, res, next) {
                 var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
                 
 
-                if (termCount == 0) {
-                    termCount = 1;
-                }
                 var continuousConcentration = parseInt(total/termCount);
                 
+                //rank
+                var avgT = total / 30;
+                var avgAR = total / rows1[0].goal;
+                var avgCC = total / termCount;
+           
+                var rank = loadRank(avgT, avgAR, avgCC);
+
                 var loadDayStatResult = {
                     total: rows1[0].total == null ? 0 : rows1[0].total,
                     goal: rows1[0].goal == null ? 0 : rows1[0].goal,
                     achievementRate: rows1[0].total / rows1[0].goal * 100,
                     continuousConcentration: (continuousConcentration == null || continuousConcentration == "null") ? 1 : continuousConcentration,
-                    subject: subject
+                    subject: subject,
+                    rank: rank
                 }
                 return res.status(200).send(loadDayStatResult);
                 
@@ -188,17 +193,20 @@ router.get('/loadRank', function (req, res, next) {
 
     var userId = req.query.userId;
 
-    var selectMonthlyTotal = "SELECT SUM(term) AS total FROM histories WHERE user_id = ? AND " +
-                            "date(end_point) >= date(subdate(now(), INTERVAL 30 DAY)) AND " +
+    var selectMonthlyTotal = "SELECT SUM(term) AS total, COUNT(term) AS count_term, (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1) AS goal," 
+                            "FROM histories WHERE user_id = ? AND date(end_point) >= date(subdate(now(), INTERVAL 30 DAY)) AND " +
                             "date(end_point) <= date(now())";
 
     db.get().query(selectMonthlyTotal, userId, function (err, rows) {
         if (err) return res.status(400).send(err);
 
         var avgT = rows[0].total/30;
+        var avgAR = rows[0].total / goal;
+        var avgCC = rows[0].total / count_term;
+        
         
 
-        return res.status(200).send(loadRank(avgT, 90, 7200));
+        return res.status(200).send(loadRank(avgT, avgAR, avgCC));
     });
 
 });
