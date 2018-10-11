@@ -79,13 +79,20 @@ router.get('/loadDayStat', function(req, res, next) {
                 }
                 var total = rows1[0].total == null ? 0 : rows1[0].total;
                 var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
+                
+                console.log(total + "--"+termCount);
+                
+                if (termCount == 0) {
+                    termCount = 1;
+                }
                 var continuousConcentration = parseInt(total/termCount);
-
+                console.log(continuousConcentration);
+                
                 var loadDayStatResult = {
                     total: rows1[0].total == null ? 0 : rows1[0].total,
                     goal: rows1[0].goal == null ? 0 : rows1[0].goal,
                     achievementRate: rows1[0].total / rows1[0].goal * 100,
-                    continuousConcentration: continuousConcentration == null || "null" ? 0 : continuousConcentration,
+                    continuousConcentration: (continuousConcentration == null || continuousConcentration == "null") ? 1 : continuousConcentration,
                     subject: subject
                 }
                 return res.status(200).send(loadDayStatResult);
