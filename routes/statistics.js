@@ -195,7 +195,8 @@ router.get('/loadRank', function (req, res, next) {
     db.get().query(selectMonthlyTotal, userId, function (err, rows) {
         if (err) return res.status(400).send(err);
 
-        var avgT = rows[0].total;
+        var avgT = rows[0].total/30;
+        
 
         return res.status(200).send(loadRank(avgT, 90, 7200));
     });
