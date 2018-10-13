@@ -151,7 +151,7 @@ router.get('/loadDayStat', function(req, res, next) {
                     var terms  = [0, 0, 0, 0];
                     for (var j =0; j < rows2.length; j++) {
                         if (subjectIdsArray[i] == rows2[j].subject_id) {
-                            terms[rows2[j].study_id] = rows2[j].term;
+                            terms[rows2[j].study_id] += rows2[j].term;
                         }
                     }
                     totals.push(terms);
