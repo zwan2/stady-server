@@ -4,7 +4,7 @@ var router = express.Router();
 var path = require('path');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+/*router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
   
   fs.readFile('./web/a.html', function (error, data) {
@@ -17,7 +17,9 @@ router.get('/', function(req, res, next) {
 
 
 /* GET home page. */
-router.get('/landing', function(req, res, next) {
+router.get('/', function(req, res, next) {
+  console.log('landing page');
+  
   res.render('landing.html')
 });
 
