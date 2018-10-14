@@ -23,6 +23,7 @@ db.connect(function (err) {
 
 var app = express();
 
+
 //custom
 //session
 app.use(session({
@@ -51,6 +52,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+//app.use(express.static('public'));
+
+//1C1
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+app.engine('html', require('ejs').renderFile);
 
 
 
@@ -108,6 +115,8 @@ io.sockets.on('connection', function (socket) {
 http.listen(3000, function () {
   console.log('server running');
 });
+
+
 
 
 //GLOBAL
