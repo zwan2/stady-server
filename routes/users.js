@@ -4,7 +4,18 @@ var db = require('../config/db');
 var passport = require('passport'),
   LocalStrategy = require('passport-local').Strategy;
 
+//GLOBAL
+global.isAuthenticated = function (req, res, next) {
+  //if debug mode
+  return next();
 
+  if (req.isAuthenticated()) {
+    //console.log(req.sessionID);
+    //console.log(req.body.userId);
+    return next();
+  }
+  res.redirect('/users/');
+};
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -51,6 +62,7 @@ router.post('/join', passport.authenticate('local-join'),
     }
     return res.status(200).send(JSON.stringify(jsonSession));
 });
+
 
 
 module.exports = router;

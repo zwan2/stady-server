@@ -4,7 +4,7 @@ USE STADY;
 CREATE TABLE user_accounts(
     id INT(8) NOT NULL AUTO_INCREMENT,
     account_id VARCHAR(20) NOT NULL,
-	account_pw VARCHAR(20) NOT NULL,
+	account_pw CHAR(24) NOT NULL,
     session_id CHAR(32) DEFAULT NULL,
 	UNIQUE INDEX ux_account_id (account_id),
 	PRIMARY KEY (id)

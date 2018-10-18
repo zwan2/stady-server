@@ -87,35 +87,10 @@ function getRank(score) {
     }
 }
 
-/*
-function loadDayStat (targetTime, userId, callback) {
-    
-    if(targetTime == undefined) {
-        var targetTime = moment().format('YYYY-MM-DD');
-    }
-    
-
-    var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
-
-    var querySelectHistories = "SELECT SUM(term) AS total_time, (SUM(term) / (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1))" +
-        "AS goal_completion_rate, (SUM(term) / COUNT(term)) AS concentration_time FROM histories WHERE user_id = ?" +
-        "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
-
-    db.get().query(querySelectHistories, [tomorrowTime, userId, userId, targetTime], function (err, rows) {
-        //if (err) callback(err, null);
-        console.log(rows);
-
-        callback(null, JSON.stringify(rows));
-        //return JSON.stringify(rows);
-    });
-  
-    
-}
-*/
 
 //1일치 정보(총공부시간,목표달성률,연속집중력) 불러오기
 //req: targetTime, userId
-router.get('/loadDayStat', function(req, res, next) {
+router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     
     var tomorrowTime = moment(req.query.targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
     
@@ -125,6 +100,7 @@ router.get('/loadDayStat', function(req, res, next) {
     + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
     
     //SELECT subject
+    //약짬뽕(DB에서 h.term -> 서버 코드에서 합침)
     var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?"
                                 +" AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)"
                                 +" AND h.end_point >= ? ORDER BY h.subject_id, h.study_id";
@@ -189,7 +165,7 @@ router.get('/loadDayStat', function(req, res, next) {
     });
 });
 
-router.get('/loadRank', function (req, res, next) {
+router.get('/loadRank', isAuthenticated, function (req, res, next) {
 
     var userId = req.query.userId;
 

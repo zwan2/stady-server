@@ -11,7 +11,7 @@ router.get('/', function (req, res, next) {
 
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
-router.get('/loadMain', function (req, res, next) {
+router.get('/loadMain', isAuthenticated, function (req, res, next) {
     
     //[1] loadSettings
     var examAddress, examTitle;
@@ -81,7 +81,7 @@ router.get('/loadMain', function (req, res, next) {
 });
 
 //REQ: userId, totalGoal
-router.post('/setTotalGoal', function (req, res, next) {
+router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
    
     var queryInsertGoals = "INSERT INTO user_goals (user_id, exam_address, today_goal) VALUES(?, (SELECT exam_address FROM user_settings WHERE user_id = ?), ?)";
     db.get().query(queryInsertGoals, [req.body.userId, req.body.userId, req.body.totalGoal], function (err, rows) {
@@ -94,7 +94,7 @@ router.post('/setTotalGoal', function (req, res, next) {
 
 // 스톱워치 정지 기능
 // REQ: userId, examaddress, subjectId, studyId, startPoint, endPoint, term
-router.post('/stop', function(req, res, next) {
+router.post('/stop', isAuthenticated, function (req, res, next) {
     var queryInsertData = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
      db.get().query(queryInsertData, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
         if (err) {

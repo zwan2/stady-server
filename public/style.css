@@ -1,3 +1,14 @@
+/*custom*/
+@media (min-width: 768px) {
+	.img-fluid {
+		max-width: 100%;
+	}
+}
+.img-fluid {
+	max-width: 80%;
+}
+
+
 /*///////////////////////////////////////////////////////////////////////////////////
 
 	Theme Name: Seo Company

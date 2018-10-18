@@ -1,6 +1,7 @@
 var passport = require('passport')
     , LocalStrategy = require('passport-local').Strategy;
 var db = require('../config/db');
+var crypto = require('crypto');
 
 module.exports = function (passport) {
 
@@ -23,8 +24,14 @@ module.exports = function (passport) {
         passReqToCallback: true
     }, function (req, email, password, done) {
         
+        //암호화
+        const cipher = crypto.createCipher('aes-256-cbc', 'travrpropic');
+        let EncryptedPassword = cipher.update(password, 'utf8', 'base64');
+        EncryptedPassword += cipher.final('base64');
+
+        
         var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
-        db.get().query(sqlSelectUsers, [req.body.email, req.body.password], function (err, rows1) {
+        db.get().query(sqlSelectUsers, [req.body.email, EncryptedPassword], function (err, rows1) {
             if(err) {
                 return done(err);
             }
@@ -82,7 +89,8 @@ module.exports = function (passport) {
         passwordField: 'password',
         passReqToCallback: true
     }, function (req, email, password, done) {
-        //중복방지
+
+        //중복방지 INSERT IGNORE
         var sqlInsertUsers = "INSERT IGNORE INTO user_accounts (account_id, account_pw, session_id) VALUES (?, ?, ?)";
         var sqlInsertData = "INSERT IGNORE INTO user_settings (user_id, name) VALUES (?, ?)";
         var sqlInsertGoals = "INSERT IGNORE INTO user_goals (user_id, today_goal) VALUES (?, ?)";
@@ -90,7 +98,13 @@ module.exports = function (passport) {
         //오늘의 골 기본값
         var todayGoal = 3600;
 
-        db.get().query(sqlInsertUsers, [req.body.email, req.body.password, req.sessionID], function (err, rows1) {  
+        //암호화
+        const cipher = crypto.createCipher('aes-256-cbc', 'travrpropic');
+        let EncryptedPassword = cipher.update(password, 'utf8', 'base64');
+        EncryptedPassword += cipher.final('base64');
+   
+
+        db.get().query(sqlInsertUsers, [req.body.email, EncryptedPassword, req.sessionID], function (err, rows1) {
             if (err) return done(err);
             
             db.get().query(sqlInsertData, [rows1.insertId, req.body.email], function (err, rows2) {

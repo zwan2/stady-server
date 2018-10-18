@@ -67,7 +67,6 @@ app.use('/exams', require('./routes/exams'));
 app.use('/stopwatch', require('./routes/stopwatch'));
 app.use('/groups', require('./routes/groups'));
 app.use('/statistics', require('./routes/statistics'));
-app.use('/rank', require('./routes/rank'));
 
 
 // catch 404 and forward to error handler
@@ -121,12 +120,5 @@ app.listen(80, function () {
   console.log('Server... on port 80');
 });
 
-
-//GLOBAL
-global.isAuthenticated = function (req, res, next) {
-  if (req.isAuthenticated())
-    return next();
-  res.redirect('/users/');
-};
 
 module.exports = app;
