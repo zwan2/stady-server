@@ -41,11 +41,11 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
 
                 var nowTime = moment().format('YYYY-MM-DD');
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
-                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ? GROUP BY subject_id";
+                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND subject_id IN(SELECT subject_ids FROM user_settings d WHERE d.user_id = ?)  AND end_point >= ? GROUP BY subject_id";
                 //[2] LoadHistory
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
                     if (err) return res.status(400).send(err);
-                    db.get().query(querySelectHistory, [req.query.userId, req.query.userId, nowTime], function (err, rows5) {
+                    db.get().query(querySelectHistory, [req.query.userId, req.query.userId, req.query.userId, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
                         for (var i in rows5) {                      
@@ -106,11 +106,6 @@ router.post('/stop', isAuthenticated, function (req, res, next) {
 })
 
 
-
-// socket - 스톱워치 시작
-router.post('/start', function(req, res, next) {
-
-});
 
 
 module.exports = router;

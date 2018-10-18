@@ -47,7 +47,7 @@ router.get('/selectSubject', function(req, res, next) {
 });
 
 //시험, 과목 저장
-//REQ: examAddress, userId
+//REQ: examAddress, subject_ids, userId
 router.post('/saveCondition', isAuthenticated, function (req, res, next) {
     console.log(req.body.examAddress);
     console.log(req.body.userId);

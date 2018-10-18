@@ -166,19 +166,25 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 });
 
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
-
+    //var todayTime = moment("YYYY-MM-DD");
     var userId = req.query.userId;
+    console.log(userId);
+    
+    var selectMonthlyTotal = "SELECT SUM(term) AS total, " +
+                                    "COUNT(term) AS count_term, " +
+                                    "(SELECT today_goal FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1) AS goal FROM histories " +
+                                    "WHERE user_id = ? AND " +
+                                    "date(end_point) >= date(subdate(now(), INTERVAL 30 DAY)) AND " +
+                                    "date(end_point) <= date(now())";
 
-    var selectMonthlyTotal = "SELECT SUM(term) AS total, COUNT(term) AS count_term, (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1) AS goal," 
-                            "FROM histories WHERE user_id = ? AND date(end_point) >= date(subdate(now(), INTERVAL 30 DAY)) AND " +
-                            "date(end_point) <= date(now())";
-
-    db.get().query(selectMonthlyTotal, userId, function (err, rows) {
+    db.get().query(selectMonthlyTotal, [userId, userId], function (err, rows) {
+        console.log(rows[0]);
+        
         if (err) return res.status(400).send(err);
 
         var avgT = rows[0].total/30;
-        var avgAR = rows[0].total / goal;
-        var avgCC = rows[0].total / count_term;
+        var avgAR = rows[0].total / rows[0].goal;
+        var avgCC = rows[0].total / rows[0].count_term;
         
         
 
