@@ -113,7 +113,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     //약짬뽕(DB에서 h.term -> 서버 코드에서 합침)
     var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?"
                                 +" AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)"
-                                +" AND h.end_point = ? ORDER BY h.subject_id, h.study_id";
+                                +" AND DATE(h.end_point) = ? ORDER BY h.subject_id, h.study_id";
                                 
     db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
         if (err) return res.status(400).send(err);
