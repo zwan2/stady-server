@@ -44,7 +44,7 @@ module.exports = function (passport) {
                 //console.log(req.sessionID);
                 
                 var sqlUpdateUsers = "UPDATE user_accounts set session_id = ? WHERE account_id = ? AND account_pw = ?";
-                db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, req.body.password], function (err, rows) {
+                db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, EncryptedPassword], function (err, rows) {
                     if (err) {
                         return done(err);
                     }
