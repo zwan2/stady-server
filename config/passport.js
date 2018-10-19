@@ -42,6 +42,7 @@ module.exports = function (passport) {
             //성공
             else {
                 //console.log(req.sessionID);
+                //console.log(EncryptedPassword);
                 
                 var sqlUpdateUsers = "UPDATE user_accounts set session_id = ? WHERE account_id = ? AND account_pw = ?";
                 db.get().query(sqlUpdateUsers, [req.sessionID, req.body.email, EncryptedPassword], function (err, rows) {
