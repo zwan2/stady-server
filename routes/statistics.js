@@ -91,26 +91,36 @@ function getRank(score) {
 //1일치 정보(총공부시간,목표달성률,연속집중력) 불러오기
 //req: targetTime, userId
 router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
+
+    //if(req.query.targetTime==null)
     
     var tomorrowTime = moment(req.query.targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
-    
+
+   /*
+    var q1 = "SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1";
+    db.get().query(q1, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
+        return rows1[0];
+        
+    });
+*/
+
     //SELECT common
-    var querySelectHistories = "SELECT SUM(term) AS total, (SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1) AS goal,"
+    var querySelectHistories = "SELECT SUM(term) AS total, (SELECT today_goal FROM user_goals WHERE reg_time < ? AND user_id = ? ORDER BY reg_time DESC LIMIT 1) AS goal,"
     +"(SELECT subject_ids FROM user_settings WHERE user_id = ?) AS subjectIds, COUNT(term) term_count FROM histories WHERE user_id = ?"
-    + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND end_point >= ?";
+    + "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND DATE(end_point) = ?";
     
     //SELECT subject
     //약짬뽕(DB에서 h.term -> 서버 코드에서 합침)
     var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?"
                                 +" AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)"
-                                +" AND h.end_point >= ? ORDER BY h.subject_id, h.study_id";
+                                +" AND h.end_point = ? ORDER BY h.subject_id, h.study_id";
                                 
-    db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
+    db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
         if (err) return res.status(400).send(err);
             
         db.get().query(querySelectHistories2, [req.query.userId, req.query.userId, req.query.targetTime], function (err, rows2) {
             if (err) return res.status(400).send(err);
-
+            
             var subjectIds = rows1[0].subjectIds;
             var subjectIdsArray = subjectIds.split(",");
 
@@ -137,27 +147,34 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                     totals: totals,
                     names: names
                 }
-                var total = rows1[0].total == null ? 0 : rows1[0].total;
-                var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
-                
 
-                var continuousConcentration = parseInt(total/termCount);
+                console.log(rows1[0].total);
+                console.log(rows1[0].goal);
                 
+                var total = rows1[0].total == null ? 0 : rows1[0].total;
+                var goal = rows1[0].goal == null ? 3600 : rows1[0].goal;
+                var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
+                //console.log(total+termCount);
+                
+                var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
+               
                 //rank
                 var avgT = total / 30;
-                var avgAR = total / rows1[0].goal;
+                var avgAR = total / goal;
                 var avgCC = total / termCount;
-           
+                
+               
                 var rank = loadRank(avgT, avgAR, avgCC);
 
                 var loadDayStatResult = {
-                    total: rows1[0].total == null ? 0 : rows1[0].total,
-                    goal: rows1[0].goal == null ? 0 : rows1[0].goal,
-                    achievementRate: rows1[0].total / rows1[0].goal * 100,
-                    continuousConcentration: (continuousConcentration == null || continuousConcentration == "null") ? 1 : continuousConcentration,
+                    total: total,
+                    goal: goal,
+                    achievementRate: total / goal * 100,
+                    continuousConcentration: continuousConcentration,
                     subject: subject,
                     rank: rank
                 }
+                
                 return res.status(200).send(loadDayStatResult);
                 
             });
@@ -165,8 +182,8 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     });
 });
 
+
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
-    //var todayTime = moment("YYYY-MM-DD");
     var userId = req.query.userId;
     console.log(userId);
     
@@ -182,16 +199,20 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
         
         if (err) return res.status(400).send(err);
 
+        
         var avgT = rows[0].total/30;
         var avgAR = rows[0].total / rows[0].goal;
         var avgCC = rows[0].total / rows[0].count_term;
         
-        
+        console.log(avgT);
+        console.log(avgAR);
+        console.log(avgCC);
 
         return res.status(200).send(loadRank(avgT, avgAR, avgCC));
     });
 
 });
+
 
 
 module.exports = router;

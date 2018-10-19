@@ -13,7 +13,7 @@ CREATE TABLE user_accounts(
 CREATE TABLE user_settings(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
-    name CHAR(10) NOT NULL,
+    name VARCHAR(20) NOT NULL,
     exam_address VARCHAR(13) DEFAULT NULL,
     subject_ids VARCHAR(30) DEFAULT NULL,
     group_ids VARCHAR(255) DEFAULT NULL,

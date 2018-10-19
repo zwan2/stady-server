@@ -20,7 +20,7 @@ var path = require('path');
 router.get('/', function(req, res, next) {
   console.log('landing page');
   
-  res.render('landing.html')
+  res.render('landing')
 });
 
 
