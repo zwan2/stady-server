@@ -8,8 +8,8 @@
   </a>
 
   <div class="collapse navbar-collapse"></div>
-  <a class="btn btn-primary btn-sm btn-sm my-2 my-sm-0" href="#downLink">
-    <small class="text-white font-weight-bold">알파 다운로드</small>
+  <a class="btn btn-primary btn-sm btn-sm my-2 my-sm-0" href="#download">
+    <small class="text-white font-weight-bold">시작하기</small>
   </a>
 
 </nav>
@@ -19,68 +19,15 @@
   <section id="hero">
     <div class="container">
       <div class="row">
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-center">
+        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5 text-center">
           <img src="images/mockup.png" class="img-fluid " alt="Demo image">
         </div>
-        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+        <div class="col-md-7 content-box hero-content">
           <span>STADY</span>
           <h1>그래프로 보는<br><b>당신의 노력과 열정.</b></h1>
           <p>내 공부를 기록하고 통계로 정리해보세요.<br>같은 시험을 준비하는 다른 사람과 비교해보세요.</p>
-          <a href="<%=apkLink%>" id="downLink" class="btn btn-regular"><b>알파 다운로드</b></a>
-          <br>
-          <br>
-          <br>
-
-          <p>공지사항</p>
-          <h5><%=notice%></h5>
-          <small><%=reg_date%></small>
-          <br/>
-
-          <div>
-            <p><i><%=versionStatus%> <%=versionReal%></i></p>
-            <h5 style="white-space:pre-line">
-              <%=changes%>
-            </h5>
-            <br/><br />
-          </div>
-
-
-
-          <form method="post" action="bugReport" name="comment">
-
-            <div class="form-row align-items-center">
-              <div class="col-10 col-md-11 my-1">
-                <label class="sr-only" id="c" for="inlineFormInputName">코멘트</label>
-                <input name="comment" type="text" class="form-control" id="inlineFormInputName" placeholder="코멘트" name="comment">
-
-              </div>
-
-
-              <div class="col-2 col-md-1 my-1">
-                <button type="submit" class="btn btn-outline-success">입력</button>
-              </div>
-            </div>
-          </form>
-
-          <% 
-          comment[0]
-          for(var i = 0; i < comment.length; i++) {
-
-              %><small class='font-weight-light'>
-            <%=comment[i].comment%> </small>
-          <%
-              %><small class='font-weight-light'>
-            <%=comment[i].reg_date%></small><br>
-          <%
-              
-          }
-          %>
-                    
-
-
-
-
-
+          <a href="#download" id="downLink" class="btn btn-regular"><b>시작하기</b></a>
+          
 
         </div>
       </div>
@@ -92,29 +39,110 @@
 
   <!-- E N D  H E R O -->
 
-  <!---->
-  <!-- E N D  M A R K E T I N G -->
-  <!-- section id="marketing">
+  <!-- -->
+  <!-- S T A R T  D O W N L O A D -->
+  <section id="download">
     <div class="container">
       <div class="row">
-        <div class="col-md-5">
+
+        <!-- Left Section -->
+        <div class="col-md-6 notice-box">
           <div class="content-box">
-            <span>Organic Search Report</span>
-            <h2>Search Insights</h2>
-            <p>Grow your search traffic, research your competitors keywords and monitor your ranking in real time.</p>
-            <a href="#" class="btn btn-regular">Start Free Trial</a>
+            <span>Notice</span>
+            <h3><%= notice %></h3>
+            <p style="white-space:pre-line">
+              <%= content %>
+            </p>
           </div>
         </div>
-        <div class="col-md-7">
-            <img src="images/demo-image.png" class="img-fluid" alt="Demo image">
+
+
+        <!-- Right Section -->
+        <div class="col-md-6" style="padding-top: 60px;">
+
+
+          <div class="pricing-box">
+
+            <div style="float: left; margin-left: 20px;">
+              <span><%= versionStatus %></span>
+              <h2>
+                <%= versionReal %>
+              </h2>
+            </div>
+
+            <div style="float: right; margin-right: 20px;">
+              <a href="<%= apkLink %>" id="downLink" class="circle-btn btn-regular" style="">
+                <i class="material-icons md-36 md-dark white-center-icon">get_app</i>
+              </a>
+            </div>
+
+            <br>
+            <br>
+            <br>
+              
+          </div>
+
+          <br> <br>
+
+          <div class="changes">
+
+            <ul>
+                <%
+                  var sentences = changes.split("\r\n");
+                %>
+                <% for (var i=0 ; i<sentences.length ; i++) { %>
+                    <% sentences[i] = sentences[i].replace("- ", ""); %>
+                    <li>
+                      <h5>
+                        <i class="icon ion-md-checkmark-circle-outline"></i>
+                        <%= sentences[i] %>
+                      </h5>
+                    </li> 
+                <% } %>
+              </ul>
+            </div>
         </div>
+
+
+          
+        <!--
+        <form method="post" action="bugReport" name="comment">
+
+          <div class="form-row align-items-center">
+            <div class="col-10 col-md-11 my-1">
+              <label class="sr-only" id="c" for="inlineFormInputName">코멘트</label>
+              <input name="comment" type="text" class="form-control" id="inlineFormInputName" placeholder="코멘트" name="comment">
+
+            </div>
+
+            <div class="col-2 col-md-1 my-1">
+              <button type="submit" class="btn btn-outline-success">입력</button>
+            </div>
+          </div>
+
+        </form>
+
+        <% comment[0] %>
+        <% for (var i = 0; i < comment.length; i++) { %>
+
+          <small class='font-weight-light'>
+            <%= comment[i].comment %>
+          </small>
+          <small class='font-weight-light'>
+            <%= comment[i].reg_date %>
+          </small>
+          <br>
+          
+        <% } %>
+        -->
+          
       </div>
     </div>
-  </section> -->
+  </section>
   <!-- E N D  M A R K E T I N G -->
 
   <!-- T E S T I M O N I A L S -->
-  <!-- section id="testimonials">
+  <!-- <section id="testimonials">
     <div class="container">
       <div class="title-block">
         <h2>The Best Digital Agencies Recommend Our Software</h2>

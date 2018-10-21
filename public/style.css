@@ -47,7 +47,7 @@
 	2. Navbar
 	3. Buttons
 	4. Hero
-	5. Marketing
+	5. Download
 	6. Testimonials
 	7. Pricing
 	8. Call to Action
@@ -79,7 +79,7 @@ h5 {
 
 p {
 	font-size: 14px;
-	font-weight: 400;
+	font-weight: 500;
 	letter-spacing: .05em;
 	color: #53627C;
 }
@@ -123,6 +123,11 @@ section {
     margin: 2rem 0 0;
 	border-top: 1px solid #edf1f2
 }
+
+.vertLine {
+    border-right:1px #ff0000;    /* line 1 pixel width, length of "Some content" */
+}
+
 
 /* ==============================================
    2. Navbar 
@@ -179,6 +184,23 @@ section {
 	box-shadow: 0 2px 3px 0 rgba(0,0,0,.05), 0 1px 2px 0 rgba(0,0,0,.08);
 }
 
+.circle-btn {
+	font-size: 14px;
+	font-weight: 400;
+	width: 50px;
+	height: 50px;
+	border-radius: 50%;
+	box-shadow: 0 2px 3px 0 rgba(0,0,0,.05), 0 1px 2px 0 rgba(0,0,0,.08);
+    position:relative;
+}
+.white-center-icon {
+	color: #ffffff !important;
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translateX(-50%) translateY(-50%); 
+}
+
 .btn:hover {
 	text-decoration: none;
 }
@@ -191,6 +213,7 @@ section {
 	margin-top: 25px;
 	display: inline-block;
 }
+
 
 .btn-regular:hover {
 	background-color: #0191f0;
@@ -278,22 +301,53 @@ section {
 }
 
 /* ==============================================
-   5. Marketing
+   5. Download
 ===============================================*/
 
-#marketing p {
+.changes ul {
+	padding-left: 10px;
+}
+
+.changes li {
+	font-size: 14px;
+	font-weight: 300;
+	color: #8da2b5;
+	letter-spacing: .1em;
+}
+
+.changes span {
+	font-weight: 500;
+	color: #0095f7;
+}
+
+.changes small {
+	color: #8da2b5;
+	letter-spacing: .2em;
+}
+
+.changes i {
 	font-size: 20px;
-    font-weight: 300;
+	color: #0095f7;
+	margin-right: 10px;
+}
+
+#download p {
+	font-size: 20px;
+    font-weight: 400;
     color: #8da2b5;
     margin-bottom: 0px;
     padding: 0px;
 }
 
-#marketing span {
+#download span {
 	font-weight: 400;
 	color: #0095f7;
 	text-transform: uppercase;
 	letter-spacing: .05em;
+}
+
+.notice-box {
+	padding: 0px 0px 0px 50px;
 }
 
 .content-box {
@@ -379,11 +433,11 @@ section {
 
 .pricing-box {
 	background-color: #ffffff;
-	padding: 40px 20px;
+	padding: 40px 0px;
 	border: 1px solid #F8F9FB;
-	border-radius: 6px;
+	border-radius: 24px;
 	box-shadow: 0 0 1px 0 rgba(0,12,32,0.04), 0 10px 16px 0 rgba(10,31,68,0.06);
-	margin-top: 30px;
+	/* margin-top: 30px; */
 }
 
 .pricing-box h3 {
