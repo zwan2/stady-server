@@ -1,26 +1,49 @@
+<% include ./top.ejs %>
+<% if (userId == '' || userId == undefined) { userId = 1;} %>
+    <body>
+        <section style="padding: 0px 0px;">
+            <div class="container">
+                <div class="row" style="margin: 10px 10px; width=100%;">
+                    <form method="post" action="bugReport"  name="comment" style="width: 100%;">
+                        <input type="hidden" name="userId" value="<%= userId %>" />
 
-<form method="post" action="bugReport"  name="comment">
+                        <div class="form-row align-items-center">
+                            <div style="width: 80%;">
+                                <label class="sr-only" id="c" for="inlineFormInputName">코멘트</label>
+                                <input name="comment" type="text" class="form-control" id="inlineFormInputName" placeholder="" name="comment">
+                            </div>
 
-    <div class="form-row align-items-center">
-        <div class="col-10 col-md-11 my-1">
-            <label class="sr-only" id="c" for="inlineFormInputName">코멘트</label>
-            <input name="comment" type="text" class="form-control" id="inlineFormInputName" placeholder="코멘트" name="comment">
-      
-        </div>
+                            <div style="width: 15%; margin-left:10px">
+                                <button type="submit" class="btn btn-outline-success">입력</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
 
 
-        <div class="col-2 col-md-1 my-1">
-            <button type="submit" class="btn btn-outline-success">입력</button>
-        </div>
-    </div>
-</form>
 
-<% 
-comment[0]
-for(var i = 0; i < comment.length; i++) {
+                <div class="row" style="margin: 20px 10px;">
+                
+                    <ul style="width: 100%;">
+                        <% for (var i=0 ; i<comment.length ; i++) { %>
+                            <li>
+                                <div style="background-color: #ffffff;
+                                            border: 1px solid #F8F9FB;
+                                            order-radius: 6px;
+                                            box-shadow: 0 0 1px 0 rgba(0,12,32,0.04), 0 10px 16px 0 rgba(10,31,68,0.06);
+                                            margin: 10px 0px;">
+                                
+                                    <h5 style="padding: 10px 20px"><%= comment[i].comment %></h5>
+                                    <p style="text-align: end !important"><i><%= comment[i].account_id %>&nbsp;&nbsp;<%= comment[i].reg_date %></i></p>
+                                    
+                                </div>
+                            </li>
+                        <% } %>
+                    </ul>
+                    
+                </div>
+            </div>
+        </section>
 
-    %><small class='font-weight-light'><%=comment[i].comment%> </small><%
-    %><small class='font-weight-light'> <%=comment[i].reg_date%></small><br><%
-    
-}
-%>
+    </body>
+</html>

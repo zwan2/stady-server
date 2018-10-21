@@ -15,7 +15,7 @@ router.get('/', function(req, res, next) {
     var querySelectNotice = "SELECT content, notice FROM notice ORDER BY id DESC LIMIT 1";
     db.get().query(querySelectNotice, function (err, rows2) {
 
-      //var nowTime = moment(rows2[0].reg_date).format('YYYY-MM-DD HH:MM:SS');
+      //var nowTime = moment(rows2[0].reg_date).format('YYYY-MM-DD HH:mm:ss');
       var querySelectComment = "SELECT reg_date, comment FROM bug_report ORDER BY id DESC";
       db.get().query(querySelectComment, function (err, rows3) {
 
@@ -62,22 +62,30 @@ router.post('/noticeUpdate', function(req, res, next) {
   });
 });
 router.get('/bugReport', function (req, res, next) {
-  var querySelectComment = "SELECT reg_date, comment FROM bug_report ORDER BY id DESC";
+  var querySelectComment = "SELECT b.reg_date, b.comment, b.user_id, a.account_id FROM bug_report AS b JOIN user_accounts AS a WHERE a.id = b.user_id ORDER BY b.id DESC";
+  //var querySelectMyEmail = "SELECT account_id FROM user_accounts WHERE id = ? LIMIT 1";
+
   db.get().query(querySelectComment, function (err, rows) {
+
+    for (var i=0 ; i<rows.length ; i++) {
+      rows[i].reg_date = moment(rows[i].reg_date).format('YY/MM/DD HH:mm:ss');
+    }
+
     res.render('bugReport', {
-      comment: rows
+      comment: rows,
+      userId: req.query.userId
     });
+
   });
 });
 
-router.post('/bugReport', function (req, res, next) {
-  var nowTime = moment().format('YYYY-MM-DD HH:mm');
-  var queryInsertReport = "INSERT INTO bug_report (reg_date, comment) VALUES (?,?)";
-  db.get().query(queryInsertReport, [nowTime, req.body.comment], function (err, rows) {
+router.post('/bugReport', function (req, res, next) {  
+  var nowTime = moment().format('YYYY-MM-DD HH:mm:ss');
+  var queryInsertReport = "INSERT INTO bug_report (reg_date, comment, user_id) VALUES (?,?,?)";
+  db.get().query(queryInsertReport, [nowTime, req.body.comment, req.body.userId], function (err, rows) {
     if (err) return res.status(400).send(err);
-    res.send("<script>location.href='/';alert('등록 완료');</script>");
+    res.send("<script>location.href='/bugReport?userId=" + req.body.userId + "';alert('등록 완료');</script>");
   });
 });
-
 
 module.exports = router;

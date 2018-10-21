@@ -47,7 +47,7 @@ router.post('/sessionLogin',
   passport.authenticate('local-sessionLogin'),
   function (req, res) {
     var jsonSession = {
-      userId: req.user.id    
+      userId: req.user.id   
     }
     return res.status(200).send(JSON.stringify(jsonSession));
   });
