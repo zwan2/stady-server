@@ -1,0 +1,68 @@
+<% include ./top.ejs %>
+<body>
+
+    <!-- N A V B A R -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <a class="navbar-brand" href="/">
+            <img src="images/logo.png" width="30" height="30" alt="">
+            <inline class="align-middle font-weight-bold">STADY</inline>
+        </a>
+
+        <div class="collapse navbar-collapse"></div>
+        <a class="btn btn-primary btn-sm btn-sm my-2 my-sm-0" href="#downLink">
+            <small class="text-white font-weight-bold">알파 다운로드</small>
+        </a>
+
+    </nav>
+    <div class="container">
+        <h1>랜딩 페이지 수정</h1>
+        <form method="post" action="landingUpdate" name="info">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon1">APK(링크)</span>
+                </div>
+                <input name="apkLink" type="text" class="form-control" placeholder="link" aria-label="Username" aria-describedby="basic-addon1">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">버전 이름</span>
+                </div>
+                <input type="text" name="versionStatus" aria-label="First name" class="form-control" placeholder="상태 버전">
+                <input type="text" name="versionReal" aria-label="Last name" class="form-control" placeholder="실제 버전">
+            </div>
+
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">변경점</span>
+                </div>
+                <textarea name="changes" wrap="physical" class="form-control" aria-label="With textarea"></textarea>
+            </div>
+
+            <br/>
+            <button class="btn btn-primary btn-block" type="submit">저장</button>
+        </form>
+        <br /><br /><br />
+        <form method="post" action="noticeUpdate" name="info">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">공지사항</span>
+                </div>
+                <textarea name="notice" class="form-control" aria-label="With textarea"><%=notice%></textarea>
+            </div>
+            <br/>
+            <button class="btn btn-primary btn-block" type="submit">저장</button>
+        </form>
+    </div>
+
+    <!-- External JavaScripts -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js" integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

@@ -87,6 +87,7 @@ CREATE TABLE subjects(
 );
 
 
+
 /* 통계 테이블 */
 
 CREATE TABLE histories_statistics(
@@ -96,4 +97,32 @@ CREATE TABLE histories_statistics(
     title VARCHAR(30) NOT NULL,
     content VARCHAR(30),
     base_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+);
+
+
+/* landing */
+
+CREATE TABLE landing(
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    apk_link VARCHAR(255) NOT NULL,
+    version_status VARCHAR(50) NOT NULL,
+    version_real VARCHAR(50) NOT NULL,
+    changes TEXT,
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE notice(
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    reg_date DATETIME NOT NULL,    
+    notice TEXT,
+    PRIMARY KEY(id)    
+);
+
+CREATE TABLE bug_report(
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    reg_date DATETIME NOT NULL,    
+    comment TEXT,
+    version VARCHAR(50),
+    user_id INT(11),
+    PRIMARY KEY(id)    
 );

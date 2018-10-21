@@ -1,0 +1,26 @@
+
+<form method="post" action="bugReport"  name="comment">
+
+    <div class="form-row align-items-center">
+        <div class="col-10 col-md-11 my-1">
+            <label class="sr-only" id="c" for="inlineFormInputName">코멘트</label>
+            <input name="comment" type="text" class="form-control" id="inlineFormInputName" placeholder="코멘트" name="comment">
+      
+        </div>
+
+
+        <div class="col-2 col-md-1 my-1">
+            <button type="submit" class="btn btn-outline-success">입력</button>
+        </div>
+    </div>
+</form>
+
+<% 
+comment[0]
+for(var i = 0; i < comment.length; i++) {
+
+    %><small class='font-weight-light'><%=comment[i].comment%> </small><%
+    %><small class='font-weight-light'> <%=comment[i].reg_date%></small><br><%
+    
+}
+%>
