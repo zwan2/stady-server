@@ -84,7 +84,7 @@ router.post('/bugReport', function (req, res, next) {
   var queryInsertReport = "INSERT INTO bug_report (reg_date, comment, user_id) VALUES (?,?,?)";
   db.get().query(queryInsertReport, [nowTime, req.body.comment, req.body.userId], function (err, rows) {
     if (err) return res.status(400).send(err);
-    res.send("<script>location.href='/bugReport?userId=" + req.body.userId + "';alert('등록 완료');</script>");
+    res.send("<script>location.href='/bugReport?userId=" + req.body.userId + "';</script>");
   });
 });
 
