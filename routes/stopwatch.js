@@ -22,7 +22,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
         if (err) return res.status(400).send(err);
         
         if(rows1[0].exam_address==undefined) {            
-            return res.sendStatus(400);
+            return res.sendStatus(401);
         } else {
             examAddress = rows1[0].exam_address.split('_');
         }
