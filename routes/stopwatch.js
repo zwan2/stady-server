@@ -50,17 +50,17 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                     console.log(rows4);
 
                 });
-*/
-console.log(subjectIds);
+                */
+                console.log(subjectIds);
 
-                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (?) AND end_point >= ? GROUP BY subject_id";
+                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? GROUP BY subject_id";
                 //[2] LoadHistory
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
                     if (err) return res.status(400).send(err);
-                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, subjectIds, nowTime], function (err, rows5) {
+                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
-                        for (var i in rows5) {                      
+                        for (var i in rows5) {
                             todayTotal = todayTotal + rows5[i].subjectTotal;
                         }
                         //return res.status(200).send(rows5);
