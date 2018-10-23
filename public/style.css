@@ -5,7 +5,7 @@
 	}
 }
 .img-fluid {
-	max-width: 80%;
+	max-width: 70%;
 }
 
 
@@ -60,6 +60,8 @@
 body {
 	font-family: 'Roboto', sans-serif;
 	color: #3a3f52;
+	word-break: keep-all;
+	word-wrap: break-word;
 }
 
 h2 {
@@ -94,8 +96,14 @@ b {
 }
 
 section {
-	padding: 100px 0px;
+	padding: 3em 0px;
 }
+
+a:link, a:visited, a:hover {
+
+	text-decoration: none;
+}
+
 
 .title-block {
 	max-width: 700px;
@@ -313,6 +321,7 @@ section {
 	font-weight: 300;
 	color: #8da2b5;
 	letter-spacing: .1em;
+	margin: 1em 0;
 }
 
 .changes span {
@@ -328,7 +337,7 @@ section {
 .changes i {
 	font-size: 20px;
 	color: #0095f7;
-	margin-right: 10px;
+	margin: 0 0 0 0;
 }
 
 #download p {
@@ -351,7 +360,7 @@ section {
 }
 
 .content-box {
-	padding: 60px 20px;
+	padding: 1.5em 0.8em;
 }
 
 /* ==============================================
@@ -433,7 +442,7 @@ section {
 
 .pricing-box {
 	background-color: #ffffff;
-	padding: 40px 0px;
+	padding: 1.5em 0px;
 	border: 1px solid #F8F9FB;
 	border-radius: 24px;
 	box-shadow: 0 0 1px 0 rgba(0,12,32,0.04), 0 10px 16px 0 rgba(10,31,68,0.06);

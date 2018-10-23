@@ -9,7 +9,7 @@
 
   <div class="collapse navbar-collapse"></div>
   <a class="btn btn-primary btn-sm btn-sm my-2 my-sm-0" href="#download">
-    <small class="text-white font-weight-bold">시작하기</small>
+    <small class="text-whitfe font-weight-bold">시작하기</small>
   </a>
 
 </nav>
@@ -19,10 +19,10 @@
   <section id="hero">
     <div class="container">
       <div class="row">
-        <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5 text-center">
+        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-center">
           <img src="images/mockup.png" class="img-fluid " alt="Demo image">
         </div>
-        <div class="col-md-7 content-box hero-content">
+        <div class="col-md-6 align-self-center">
           <span>STADY</span>
           <h1>그래프로 보는<br><b>당신의 노력과 열정.</b></h1>
           <p>내 공부를 기록하고 통계로 정리해보세요.<br>같은 시험을 준비하는 다른 사람과 비교해보세요.</p>
@@ -46,11 +46,11 @@
       <div class="row">
 
         <!-- Left Section -->
-        <div class="col-md-6 notice-box">
+        <div class="col-md-6 mt-4">
           <div class="content-box">
             <span>Notice</span>
             <h3><%= notice %></h3>
-            <p style="white-space:pre-line">
+            <p>
               <%= content %>
             </p>
           </div>
@@ -58,30 +58,33 @@
 
 
         <!-- Right Section -->
-        <div class="col-md-6" style="padding-top: 60px;">
+        <div class="col-md-6 mt-4">
+         
+          <a href="<%= apkLink %>" id="downLink">   
+            <div class="pricing-box">
+           
+              <div style="float: left; margin-left: 20px;">
+                <span><%= versionStatus %></span>
+                <h2 style="color: #3a3f52;">
+                  <%= versionReal %>
+                </h2>
+              </div>
 
-
-          <div class="pricing-box">
-
-            <div style="float: left; margin-left: 20px;">
-              <span><%= versionStatus %></span>
-              <h2>
-                <%= versionReal %>
-              </h2>
+              <div style="float: right; margin-right: 20px;">
+                <div class="circle-btn btn-regular">
+                  <i class="material-icons md-36 md-dark white-center-icon">get_app</i>
+                </div>
             </div>
-
-            <div style="float: right; margin-right: 20px;">
-              <a href="<%= apkLink %>" id="downLink" class="circle-btn btn-regular" style="">
-                <i class="material-icons md-36 md-dark white-center-icon">get_app</i>
-              </a>
-            </div>
+          </a>
 
             <br>
             <br>
             <br>
               
           </div>
-
+  
+          
+          
           <br> <br>
 
           <div class="changes">
@@ -93,10 +96,11 @@
                 <% for (var i=0 ; i<sentences.length ; i++) { %>
                     <% sentences[i] = sentences[i].replace("- ", ""); %>
                     <li>
-                      <h5>
-                        <i class="icon ion-md-checkmark-circle-outline"></i>
-                        <%= sentences[i] %>
-                      </h5>
+                    
+                      <i class="icon ion-md-checkmark-circle-outline float-left text-left"></i>
+                    
+                      <inline class=""><%= sentences[i] %></inline>
+                    
                     </li> 
                 <% } %>
               </ul>

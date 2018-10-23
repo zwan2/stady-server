@@ -4,17 +4,17 @@
         <section style="padding: 0px 0px;">
             <div class="container">
                 <div class="row" style="margin: 10px 10px; width=100%;">
-                    <form method="post" action="bugReport"  name="comment" style="width: 100%;">
+                    <form method="post" action="bugReport" name="commentForm" onsubmit="return comment_check();" style="width: 100%;">
                         <input type="hidden" name="userId" value="<%= userId %>" />
 
                         <div class="form-row align-items-center">
                             <div style="width: 80%;">
                                 <label class="sr-only" id="c" for="inlineFormInputName">코멘트</label>
-                                <input name="comment" type="text" class="form-control" id="inlineFormInputName" placeholder="" name="comment">
+                                <textarea rows="5" name="comment" type="text" class="form-control" id="comment" placeholder=""></textarea>
                             </div>
 
                             <div style="width: 15%; margin-left:10px">
-                                <button type="submit" class="btn btn-outline-success">입력</button>
+                                <button type="submit" class="btn btn-primary">입력</button>
                             </div>
                         </div>
                     </form>
@@ -47,3 +47,15 @@
 
     </body>
 </html>
+
+<script>
+function comment_check() {
+var form = document.commentForm;
+
+//코멘트
+if(form.comment.value == "") {
+form.comment.focus();
+return false;
+}
+}
+</script>

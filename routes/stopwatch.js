@@ -20,11 +20,13 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
     //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
-        if(rows1[0]==undefined) {
+        
+        if(rows1[0].exam_address==undefined) {            
             return res.sendStatus(400);
         } else {
             examAddress = rows1[0].exam_address.split('_');
         }
+
         db.get().query(querySelectExamCat, [examAddress[0], examAddress[1], examAddress[2]], function (err, rows2) {
             //공무원
             if(examAddress[0] = 1) {
