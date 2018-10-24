@@ -201,12 +201,22 @@ a:link, a:visited, a:hover {
 	box-shadow: 0 2px 3px 0 rgba(0,0,0,.05), 0 1px 2px 0 rgba(0,0,0,.08);
     position:relative;
 }
+.version_log {
+	display: table !important;
+}
 .white-center-icon {
+	width: 2.5em;
+	height: 2.5em;
+
+	border-radius: 50%;
+
+	text-align: center;
+	vertical-align: middle;
+	display: table-cell !important;
+
+	background-color: #0095f7;
 	color: #ffffff !important;
-    position: absolute;
-    top:50%;
-    left:50%;
-    transform: translateX(-50%) translateY(-50%); 
+	
 }
 
 .btn:hover {
@@ -216,7 +226,7 @@ a:link, a:visited, a:hover {
 .btn-regular {
 	background-color: #0095f7;
 	color: #ffffff;
-	padding: 10px 25px;
+	
 	letter-spacing: .1em;
 	margin-top: 25px;
 	display: inline-block;
@@ -442,11 +452,10 @@ a:link, a:visited, a:hover {
 
 .pricing-box {
 	background-color: #ffffff;
-	padding: 1.5em 0px;
-	border: 1px solid #F8F9FB;
+	border: none !important;
 	border-radius: 24px;
 	box-shadow: 0 0 1px 0 rgba(0,12,32,0.04), 0 10px 16px 0 rgba(10,31,68,0.06);
-	/* margin-top: 30px; */
+
 }
 
 .pricing-box h3 {
@@ -488,12 +497,6 @@ a:link, a:visited, a:hover {
 .pricing-box small {
 	color: #8da2b5;
 	letter-spacing: .2em;
-}
-
-.pricing-box i {
-	font-size: 20px;
-	color: #0095f7;
-	margin-right: 10px;
 }
 
 .pricing-box .demo {

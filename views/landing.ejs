@@ -9,7 +9,7 @@
 
   <div class="collapse navbar-collapse"></div>
   <a class="btn btn-primary btn-sm btn-sm my-2 my-sm-0" href="#download">
-    <small class="text-whitfe font-weight-bold">시작하기</small>
+    <small class="text-white font-weight-bold">시작하기</small>
   </a>
 
 </nav>
@@ -26,7 +26,8 @@
           <span>STADY</span>
           <h1>그래프로 보는<br><b>당신의 노력과 열정.</b></h1>
           <p>내 공부를 기록하고 통계로 정리해보세요.<br>같은 시험을 준비하는 다른 사람과 비교해보세요.</p>
-          <a href="#download" id="downLink" class="btn btn-regular"><b>시작하기</b></a>
+          <br>
+          <a href="#download" id="downLink" class="btn btn-primary"><b>시작하기</b></a>
           
 
         </div>
@@ -61,50 +62,44 @@
         <div class="col-md-6 mt-4">
          
           <a href="<%= apkLink %>" id="downLink">   
-            <div class="pricing-box">
-           
-              <div style="float: left; margin-left: 20px;">
-                <span><%= versionStatus %></span>
-                <h2 style="color: #3a3f52;">
-                  <%= versionReal %>
-                </h2>
-              </div>
-
-              <div style="float: right; margin-right: 20px;">
-                <div class="circle-btn btn-regular">
-                  <i class="material-icons md-36 md-dark white-center-icon">get_app</i>
+            <div class="card pricing-box">
+              <div class="card-body">
+                <div class="float-left">
+                  <span>
+                    <%= versionStatus %></span><br>
+                  <inline class="h2" style="color: #3a3f52;">
+                    <%= versionReal %>
+                  </inline>
                 </div>
+                <div class="float-right align-auto-center">
+                  <i class="material-icons white-center-icon">get_app</i>
+                </div>
+              </div>
             </div>
           </a>
 
-            <br>
-            <br>
-            <br>
-              
-          </div>
-  
           
           
           <br> <br>
 
-          <div class="changes">
+        <div class="changes">
 
-            <ul>
-                <%
-                  var sentences = changes.split("\r\n");
-                %>
-                <% for (var i=0 ; i<sentences.length ; i++) { %>
-                    <% sentences[i] = sentences[i].replace("- ", ""); %>
-                    <li>
-                    
-                      <i class="icon ion-md-checkmark-circle-outline float-left text-left"></i>
-                    
-                      <inline class=""><%= sentences[i] %></inline>
-                    
-                    </li> 
-                <% } %>
-              </ul>
-            </div>
+          <ul>
+              <%
+                var sentences = changes.split("\r\n");
+              %>
+              <% for (var i=0 ; i<sentences.length ; i++) { %>
+                  <% sentences[i] = sentences[i].replace("- ", ""); %>
+                  <li>
+                  
+                    <i class="icon ion-md-checkmark-circle-outline float-left text-left"></i>
+                  
+                    <inline class=""><%= sentences[i] %></inline>
+                  
+                  </li> 
+              <% } %>
+            </ul>
+          </div>
         </div>
 
 
