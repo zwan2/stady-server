@@ -105,39 +105,31 @@ router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
 });
 
 
-//REQ: userId, setGoal
+//REQ: userId, subjectGoals
 router.post('/setGoal', isAuthenticated, function (req, res, next) {
     var nowTime = moment().format('YYYY-MM-DD');    
-    var todayGoal = 0;
     
-    /*
-    //JSON 배열
-    var subjectGoals = JSON.parse(req.body.subjectGoals);
+    //todayGoal(총합) 구하기
     var todayGoal = 0;
-    //console.log(subjectGoals);
-    //console.log(subjectGoals[0].subjectId);
+    var subjectGoals = [[]];
+    var subjectGoalsLine = req.body.subjectGoals.split(',');
     
-    for (key in subjectGoals) {
-        //console.log(subjectGoals.subjectGoal);
-        todayGoal += subjectGoals[key].subjectGoal;
+    for(var i = 0; i<subjectGoalsLine.length; i++) {
+        subjectGoals[i] = subjectGoalsLine[i].split(':');
     }
-    console.log(todayGoal);
-    */
-    var subjectGoals = req.body.subjectGoals;
-    //subjectGoalsGoals
-    for (key in subjectGoals) {
-        console.log(subjectGoals[key]);
-        todayGoal += subjectGoals[key];
+    for(var i = 0; i<subjectGoals.length; i++) {
+        todayGoal += parseInt(subjectGoals[i][1]);
     }
     
-    
-
-    var queryInsertGoals = "INSERT INTO user_goals (user_id, today_goal, subject_goals, reg_time) VALUES(?, ?, ?, ?)";
-    db.get().query(queryInsertGoals, [req.body.userId, req.body.userId, req.body.totalGoal], function (err, rows) {
-        if (err) return res.status(400).send(err);
-        return res.status(200).send(JSON.stringify(rows));
+    var queryInsertGoal = "INSERT INTO user_goals (user_id, today_goal, subject_goals, reg_time) VALUES (?, ?, ?, ?)";
+    db.get().query(queryInsertGoal, [req.body.userId, todayGoal, req.body.subjectGoals, nowTime], function (err, rows) {
+        if (err) {
+            return res.status(400).send(err);
+        } else {
+            return res.sendStatus(200);
+        }
     });
-
+  
 });
 
 // 스톱워치 정지 기능

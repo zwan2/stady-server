@@ -14,6 +14,8 @@ CREATE TABLE user_settings(
     id INT(8) NOT NULL AUTO_INCREMENT,
     user_id INT(8) NOT NULL,
     name VARCHAR(20) NOT NULL,
+    gender TINYINT(1) DEFAULT 0,
+    birth_date DATE DEFAULT NULL,
     exam_address VARCHAR(13) DEFAULT NULL,
     subject_ids VARCHAR(30) DEFAULT NULL,
     group_ids VARCHAR(255) DEFAULT NULL,
@@ -97,7 +99,7 @@ CREATE TABLE exams_cat2(
 CREATE TABLE subjects(
     id INT(8) NOT NULL AUTO_INCREMENT,
     exam_address char(13) NOT NULL,
-    title VARCHAR(20) NOT NULL,
+    title VARCHAR(40) NOT NULL,
     PRIMARY KEY (id)
 );
 

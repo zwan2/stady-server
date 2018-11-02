@@ -88,4 +88,9 @@ router.post('/bugReport', function (req, res, next) {
   });
 });
 
+
+
+router.get('/privacyPolicy', function (req, res, next ){
+  res.render('privacyPolicy');
+});
 module.exports = router;

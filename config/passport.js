@@ -25,10 +25,7 @@ module.exports = function (passport) {
     }, function (req, email, password, done) {
         
         //암호화
-        const cipher = crypto.createCipher('aes-256-cbc', 'travrpropic');
-        let EncryptedPassword = cipher.update(password, 'utf8', 'base64');
-        EncryptedPassword += cipher.final('base64');
-
+        var EncryptedPassword = crypto(password);
         
         var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
         db.get().query(sqlSelectUsers, [req.body.email, EncryptedPassword], function (err, rows1) {
@@ -106,9 +103,7 @@ module.exports = function (passport) {
         var todayGoal = 3600;
 
         //암호화
-        const cipher = crypto.createCipher('aes-256-cbc', 'travrpropic');
-        let EncryptedPassword = cipher.update(password, 'utf8', 'base64');
-        EncryptedPassword += cipher.final('base64');
+        var EncryptedPassword = crypto(password);
    
 
         db.get().query(sqlInsertUsers, [req.body.email, EncryptedPassword, req.sessionID], function (err, rows1) {
