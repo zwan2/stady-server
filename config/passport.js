@@ -76,11 +76,16 @@ module.exports = function (passport) {
             }
             //성공
             else {
-                console.log(req.sessionID);
-                return done(null, {
-                    id: rows1[0].id
+                //세션 아이디 업데이트
+                var sqlUpdateUsers = "UPDATE user_accounts SET session_id = ? WHERE id = ?";
+                db.get().query(sqlUpdateUsers, [req.sessionID, rows1[0].id], function (err, rows2) {
+            
+                    return done(null, {
+                        id: rows1[0].id
+                    });
+                    
                 });
-
+                
             }
         });
     }));
@@ -90,10 +95,11 @@ module.exports = function (passport) {
         passwordField: 'password',
         passReqToCallback: true
     }, function (req, email, password, done) {
-
+        //console.log(req.body.name);
+        
         //중복방지 INSERT IGNORE
         var sqlInsertUsers = "INSERT IGNORE INTO user_accounts (account_id, account_pw, session_id) VALUES (?, ?, ?)";
-        var sqlInsertData = "INSERT IGNORE INTO user_settings (user_id, name) VALUES (?, ?)";
+        var sqlInsertSettings = "INSERT IGNORE INTO user_settings (user_id, name) VALUES (?, ?)";
         var sqlInsertGoals = "INSERT IGNORE INTO user_goals (user_id, today_goal) VALUES (?, ?)";
         
         //오늘의 골 기본값
@@ -108,7 +114,7 @@ module.exports = function (passport) {
         db.get().query(sqlInsertUsers, [req.body.email, EncryptedPassword, req.sessionID], function (err, rows1) {
             if (err) return done(err);
             
-            db.get().query(sqlInsertData, [rows1.insertId, req.body.email], function (err, rows2) {
+            db.get().query(sqlInsertSettings, [rows1.insertId, req.body.name], function (err, rows2) {
                 if (err) return done(err);
 
                 db.get().query(sqlInsertGoals, [rows1.insertId, todayGoal], function (err, rows3) {

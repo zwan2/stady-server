@@ -95,9 +95,9 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
 
 //REQ: userId, totalGoal
 router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
-   
-    var queryInsertGoals = "INSERT INTO user_goals (user_id, exam_address, today_goal) VALUES(?, (SELECT exam_address FROM user_settings WHERE user_id = ?), ?)";
-    db.get().query(queryInsertGoals, [req.body.userId, req.body.userId, req.body.totalGoal], function (err, rows) {
+
+    var queryInsertGoals = "INSERT INTO user_goals (user_id, today_goal) VALUES(?, ?)";
+    db.get().query(queryInsertGoals, [req.body.userId, req.body.totalGoal], function (err, rows) {
         if (err) return res.status(400).send(err);
         return res.status(200).send(JSON.stringify(rows));
     });
@@ -105,11 +105,47 @@ router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
 });
 
 
+//REQ: userId, setGoal
+router.post('/setGoal', isAuthenticated, function (req, res, next) {
+    var nowTime = moment().format('YYYY-MM-DD');    
+    var todayGoal = 0;
+    
+    /*
+    //JSON 배열
+    var subjectGoals = JSON.parse(req.body.subjectGoals);
+    var todayGoal = 0;
+    //console.log(subjectGoals);
+    //console.log(subjectGoals[0].subjectId);
+    
+    for (key in subjectGoals) {
+        //console.log(subjectGoals.subjectGoal);
+        todayGoal += subjectGoals[key].subjectGoal;
+    }
+    console.log(todayGoal);
+    */
+    var subjectGoals = req.body.subjectGoals;
+    //subjectGoalsGoals
+    for (key in subjectGoals) {
+        console.log(subjectGoals[key]);
+        todayGoal += subjectGoals[key];
+    }
+    
+    
+
+    var queryInsertGoals = "INSERT INTO user_goals (user_id, today_goal, subject_goals, reg_time) VALUES(?, ?, ?, ?)";
+    db.get().query(queryInsertGoals, [req.body.userId, req.body.userId, req.body.totalGoal], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        return res.status(200).send(JSON.stringify(rows));
+    });
+
+});
+
 // 스톱워치 정지 기능
 // REQ: userId, examaddress, subjectId, studyId, startPoint, endPoint, term
 router.post('/stop', isAuthenticated, function (req, res, next) {
     var queryInsertData = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
-     db.get().query(queryInsertData, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
+    //var queryDuplicateData =
+    db.get().query(queryInsertData, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
         if (err) {
             return res.status(400).send(err);
         } else {

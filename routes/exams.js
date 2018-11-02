@@ -29,7 +29,14 @@ router.get('/selectExam', function (req, res, next) {
         var querySelectExam2 = "SELECT id, title FROM exam_cat2 WHERE parent_id = ?";
         db.get().query(querySelectExam2, req.query.examParentId, function(err, rows) {
             if (err) return res.status(400).send(err);
-            return res.status(200).send(JSON.stringify(rows));
+            
+            if (rows == "") {
+                return res.sendStatus(204);
+            } else {
+                return res.status(200).send(JSON.stringify(rows));
+            }
+
+            
         });
     } else {
         return res.status(200).send(null);
