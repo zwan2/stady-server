@@ -21,21 +21,23 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
         
-        if(rows1[0].exam_address==undefined) {            
+        if(rows1[0].exam_address == undefined) {            
             return res.sendStatus(401);
-        } else {
+        } 
+        else {
             examAddress = rows1[0].exam_address.split('_');
             subjectIds = rows1[0].subject_ids;
         }
 
         db.get().query(querySelectExamCat, [examAddress[0], examAddress[1], examAddress[2]], function (err, rows2) {
+
             //공무원
-            if(examAddress[0] = 1) {
+            if(examAddress[0] == 1) {
                 examTitle = rows2[1].title + " · " + rows2[2].title;
             } 
             //이외
             else {
-                examTitle = rows2[1].title + " · " + rows2[2].title;
+                examTitle = rows2[0].title + " · " + rows2[1].title;
             }
             
             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
