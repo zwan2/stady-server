@@ -83,11 +83,26 @@ router.post('/sessionLogin',
 //2. 회원가입
 router.post('/join', passport.authenticate('local-join'), 
   function(req, res) {
-    var jsonSession = {
-      userId: req.user.id,
-      sessionId: req.sessionID
-    }
-    return res.status(200).send(JSON.stringify(jsonSession));
+
+    var queryUpdateSetting = "UPDATE user_settings SET name = ?, gender = ?, birth_date = ? WHERE user_id = ?";
+ 
+    db.get().query(queryUpdateSetting, [req.body.name, req.body.gender, req.body.birthDate, req.user.id], function (err, rows) {
+      if (err) return res.status(400).send(err);
+      
+      if(rows.affectedRows != 0) {
+        var jsonSession = {
+          userId: req.user.id,
+          sessionId: req.sessionID
+        }
+        return res.status(200).send(JSON.stringify(jsonSession));
+      }
+      else {
+        return res.sendStatus(401);
+      }
+        
+    });
+
+
 });
 
 //2.1. 중복 검사 - 이메일
