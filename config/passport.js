@@ -73,6 +73,13 @@ module.exports = function (passport) {
             }
             //성공
             else {
+
+                return done(null, {
+                    id: rows1[0].id
+                });
+
+                //신코드
+                /*
                 var sqlUpdateUsers = "SELECT session_id FROM user_accounts WHERE id = ?";
                 db.get().query(sqlUpdateUsers, [rows1[0].id], function (err, rows2) {
                     req.sessionID = rows2[0].session_id;
@@ -81,7 +88,7 @@ module.exports = function (passport) {
                     });
 
                 });
-                
+                */
                 /*
                 req.sessionID = 
                 return done(null, {
