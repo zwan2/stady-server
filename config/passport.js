@@ -25,8 +25,8 @@ module.exports = function (passport) {
     }, function (req, email, password, done) {
         
         //암호화
-        var EncryptedPassword = crypto(password);
-        
+        var EncryptedPassword = crypted(password);
+
         var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
         db.get().query(sqlSelectUsers, [req.body.email, EncryptedPassword], function (err, rows1) {
             if(err) {
@@ -103,7 +103,7 @@ module.exports = function (passport) {
         var todayGoal = 3600;
 
         //암호화
-        var EncryptedPassword = crypto(password);
+        var EncryptedPassword = crypted(password);
    
 
         db.get().query(sqlInsertUsers, [req.body.email, EncryptedPassword, req.sessionID], function (err, rows1) {
