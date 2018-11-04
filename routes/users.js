@@ -217,7 +217,7 @@ router.post('/changePassword', isAuthenticated, function (req, res, next) {
     if (err) return res.status(400).send(err);
     
     //인증 실패
-    if (rows1[0].id == null) {
+    if (rows1[0] == null) {
       return res.sendStatus(401);
     }
 
