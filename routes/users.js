@@ -182,14 +182,15 @@ router.post('/findPassword', function(req, res, next) {
 });
 
 //4. 탈퇴
-//회원관리 기능만 삭제.
+//회원관리 기능만 삭제. 특정성만 제거.
 //REQ: email, password
 router.post('/withdrawal', isAuthenticated, function (req, res, next) {
   var EncryptedPassword = crypted(req.body.password);
-  var queryDeleteAccount = "DELETE FROM user_accounts WHERE account_id = ? AND account_pw = ?"
+  var queryDeleteAccount = "DELETE FROM user_accounts WHERE account_id = ? AND account_pw = ?";
+
   db.get().query(queryDeleteAccount, [req.body.email, EncryptedPassword], function (err, rows) {
+    //실패
     if (err) return res.status(400).send(err);
-    //console.log(rows);
     
 
     //탈퇴 성공
@@ -197,16 +198,75 @@ router.post('/withdrawal', isAuthenticated, function (req, res, next) {
       req.logout();
       return res.sendStatus(200);
     }
-    //실패
+    //인증 실패
     else {
-      return res.sendStatus(400);
+      return res.sendStatus(401);
     }
   });
-
-
 });
 
-//5. 정보 변경
+//5. 비밀번호 변경
+// REQ: email, currentPassword, newPassword
+router.post('/changePassword', isAuthenticated, function (req, res, next) {
+  var encryptedCurrentPassword = crypted(req.body.currentPassword);
+  var encryptedNewPassword = crypted(req.body.newPassword);
+  var querySelectAccount = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
+  var queryUpdateAccount = "UPDATE user_accounts SET account_pw = ? WHERE id = ?";
+
+  db.get().query(querySelectAccount, [req.body.email, encryptedCurrentPassword], function (err, rows1) {
+    if (err) return res.status(400).send(err);
+    
+    //인증 실패
+    if (rows1[0].id == null) {
+      return res.sendStatus(401);
+    }
+
+    //인증 성공
+    else {
+      db.get().query(queryUpdateAccount, [encryptedNewPassword, rows1[0].id], function (err, rows2) {
+        if (err) return res.status(400).send(err);
+        
+        if(rows2.affectedRows != 0) {
+          return res.sendStatus(200);
+        } else {
+          return res.sendStatus(204);
+        }
+      });
+    }
+  });
+});
+
+//6. 닉네임 변경
+// REQ: email, name
+router.post('/changeName', isAuthenticated, function (req, res, next) {
+  var querySelectAccount = "SELECT id FROM user_accounts WHERE account_id = ?";
+  var queryUpdateSetting = "UPDATE user_settings SET name = ? WHERE user_id = ?";
+
+  db.get().query(querySelectAccount, req.body.email, function (err, rows1) {
+    if (err) return res.status(400).send(err);
+    
+    //회원 검색 실패
+    if (rows1[0].id == null) {
+      return res.sendStatus(401);
+    }
+
+    //회원 검색 성공
+    else {
+      db.get().query(queryUpdateSetting, [req.body.name, rows1[0].id], function (err, rows2) {
+        if (err) return res.status(400).send(err);
+        
+        if(rows2.affectedRows != 0) {
+          return res.sendStatus(200);
+        } else {
+          return res.sendStatus(204);
+        }
+      });
+    }
+  });
+});
+
+
+//7. 정보 변경
 // REQ: email, password, name, gender, birthDate
 router.post('/edit', isAuthenticated, function (req, res, next) {
   var EncryptedPassword = crypted(req.body.password);
