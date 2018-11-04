@@ -105,14 +105,13 @@ router.get('/checkDuplicate/email', isAuthenticated, function (req, res, next) {
   db.get().query(sqlSelectName, req.query.email, function (err, rows) {
     if (err) return res.status(400).send(err);
 
-    //중복 (재설정 필요)
     if (rows[0].count != 0) {
-      return res.sendStatus(205);
+      //중복 (재설정 필요)
+      return res.status(200).send('Duplicated');
     } else {
       //중복X
       return res.sendStatus(200);
     }
-
   });
 });
 
@@ -123,14 +122,13 @@ router.get('/checkDuplicate/name', isAuthenticated, function (req, res, next) {
   db.get().query(sqlSelectName, req.query.name, function (err, rows) {
     if (err) return res.status(400).send(err);
 
-    //중복 (재설정 필요)
     if (rows[0].count != 0) {
-      return res.sendStatus(205);
+      //중복 (재설정 필요)
+      return res.status(200).send('Duplicated');
     } else {
       //중복X
       return res.sendStatus(200);
     }
-
   });
 });
 
