@@ -31,7 +31,7 @@ CREATE TABLE user_goals(
     reg_time DATE DEFAULT NULL CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 ); 
-
+ALTER TABLE user_goals ADD UNIQUE INDEX (user_id, reg_time)
 
 
 CREATE TABLE groups(

@@ -21,7 +21,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
         
-        if(rows1[0].exam_address == undefined) {            
+        if(rows1[0] == undefined) {            
             return res.sendStatus(401);
         } 
         else {
@@ -45,28 +45,27 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                 if (err) return res.status(400).send(err);
 
                 var nowTime = moment().format('YYYY-MM-DD');
-                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1";
-                /*
-                var q = "SELECT subject_ids FROM user_settings WHERE user_id = ?";
-                db.get().query(q, [req.query.userId], function (err, rows4) {
-                    console.log(rows4);
-
-                });
-                */
-                console.log(subjectIds);
+                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
+             
+                //console.log(subjectIds);
 
                 var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? GROUP BY subject_id";
                 //[2] LoadHistory
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
                     if (err) return res.status(400).send(err);
+                    
+                    //goal 없는 아이디 접근 가능 코드 (앞으로의 유저는 문제 없음)
+                    if (rows4[0] == undefined) {
+                        todayGoal = 3600;
+                        subject_goals = null;
+                    }
+                    
                     db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
                         for (var i in rows5) {
                             todayTotal = todayTotal + rows5[i].subjectTotal;
                         }
-                        //return res.status(200).send(rows5);
-
                         
                         var loadSettingsResult = {
                             "settings": {
@@ -123,8 +122,8 @@ router.post('/setGoal', isAuthenticated, function (req, res, next) {
         todayGoal += parseInt(subjectGoals[i][1]);
     }
     
-    var queryInsertGoal = "INSERT INTO user_goals (user_id, today_goal, subject_goals, reg_time) VALUES (?, ?, ?, ?)";
-    db.get().query(queryInsertGoal, [req.body.userId, todayGoal, req.body.subjectGoals, nowTime], function (err, rows) {
+    var queryInsertGoal = "INSERT INTO user_goals (user_id, today_goal, subject_goals, reg_time) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE today_goal = ?, subject_goals = ?, reg_time = ?";
+    db.get().query(queryInsertGoal, [req.body.userId, todayGoal, req.body.subjectGoals, nowTime, todayGoal, req.body.subjectGoals, nowTime], function (err, rows) {
         if (err) {
             return res.status(400).send(err);
         } else {
