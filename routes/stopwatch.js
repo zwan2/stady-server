@@ -57,8 +57,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                     //goal 없는 아이디 접근 가능 코드 (앞으로의 유저는 문제 없음)
                     if (rows4[0] == undefined) {
                         rows4[0] = {
-                            todayGoal = 3600,
-                            subject_goals = ""
+                            todayGoal : 3600,
+                            subject_goals : ""
                         }
                     }
                     
