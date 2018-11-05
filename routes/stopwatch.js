@@ -56,8 +56,10 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                     
                     //goal 없는 아이디 접근 가능 코드 (앞으로의 유저는 문제 없음)
                     if (rows4[0] == undefined) {
-                        todayGoal = 3600;
-                        subject_goals = null;
+                        rows4[0] = {
+                            todayGoal = 3600,
+                            subject_goals = ""
+                        }
                     }
                     
                     db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, nowTime], function (err, rows5) {
