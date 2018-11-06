@@ -97,10 +97,13 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
 });
 
 //REQ: userId, totalGoal
+// 임시 골 설정 (삭제 예정)
 router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
     var nowTime = moment().format('YYYY-MM-DD');
-    var queryInsertGoals = "INSERT INTO user_goals (user_id, today_goal, reg_time) VALUES(?, ?, ?)";
-    db.get().query(queryInsertGoals, [req.body.userId, req.body.totalGoal], function (err, rows) {
+    console.log(nowTime);
+    
+    var queryInsertGoals = "INSERT INTO user_goals (user_id, today_goal, reg_time) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE today_goal = ?, reg_time = ?";
+    db.get().query(queryInsertGoals, [req.body.userId, req.body.totalGoal, nowTime, req.body.totalGoal, nowTime], function (err, rows) {
         if (err) return res.status(400).send(err);
         return res.status(200).send(JSON.stringify(rows));
     });
