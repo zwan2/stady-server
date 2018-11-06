@@ -21,7 +21,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
         
-        if(rows1[0] == undefined) {            
+        //반드시 rows1[0].exam_address으로 검사
+        if(rows1[0].exam_address == undefined) {            
             return res.sendStatus(401);
         } 
         else {
@@ -100,7 +101,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
 // 임시 골 설정 (삭제 예정)
 router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
     var nowTime = moment().format('YYYY-MM-DD');
-    console.log(nowTime);
+    //console.log(nowTime);
     
     var queryInsertGoals = "INSERT INTO user_goals (user_id, today_goal, reg_time) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE today_goal = ?, reg_time = ?";
     db.get().query(queryInsertGoals, [req.body.userId, req.body.totalGoal, nowTime, req.body.totalGoal, nowTime], function (err, rows) {
