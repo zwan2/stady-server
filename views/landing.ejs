@@ -8,7 +8,7 @@
   </a>
 
   <div class="collapse navbar-collapse"></div>
-  <a class="btn btn-primary btn-sm btn-sm my-2 my-sm-0" href="#download">
+  <a class="btn btn-regular btn-sm btn-sm my-2 my-sm-0" href="#download">
     <small class="text-white font-weight-bold">시작하기</small>
   </a>
 
@@ -27,7 +27,7 @@
           <h1>그래프로 보는<br><b>당신의 노력과 열정.</b></h1>
           <p>내 공부를 기록하고 통계로 정리해보세요.<br>같은 시험을 준비하는 다른 사람과 비교해보세요.</p>
           <br>
-          <a href="#download" id="downLink" class="btn btn-primary"><b>시작하기</b></a>
+          <a href="#download" id="downLink" class="btn btn-regular"><b>시작하기</b></a>
           
 
         </div>
@@ -72,34 +72,18 @@
                   </inline>
                 </div>
                 <div class="float-right align-auto-center">
-                  <i class="material-icons white-center-icon">get_app</i>
+                  <i class="material-icons circle-btn">get_app</i>
                 </div>
               </div>
             </div>
           </a>
 
-          
-          
-          <br> <br>
-
         <div class="changes">
 
-          <ul>
-              <%
-                var sentences = changes.split("\r\n");
-              %>
-              <% for (var i=0 ; i<sentences.length ; i++) { %>
-                  <% sentences[i] = sentences[i].replace("- ", ""); %>
-                  <li>
-                  
-                    <i class="icon ion-md-checkmark-circle-outline float-left text-left"></i>
-                  
-                    <inline class=""><%= sentences[i] %></inline>
-                  
-                  </li> 
-              <% } %>
-            </ul>
-          </div>
+          <small style="white-space:pre-line">
+            <%= changes %>
+          </small>
+
         </div>
 
 
@@ -264,10 +248,10 @@
   <!-- E N D  C A L L  T O  A C T I O N -->
 
   <!--  F O O T E R  -->
-  <!-- <footer>
+  <footer>
     <div class="container">
       <div class="row">
-        <div class="col-md-3">
+        <!-- <div class="col-md-3">
           <h5>Seo Ranking</h5>
           <ul>
             <li><a href="#">Pricing</a></li>
@@ -296,27 +280,29 @@
             <li><a href="#">White Hat SEO Tips</a></li>
             <li><a href="#">Google Trends</a></li>
           </ul>
-        </div>
-        <div class="col-md-3">
+        </div> -->
+        <div>
           <h5>Company</h5>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur scelerisque, tortor nec mattis feugiat, velit purus euismod odio, quis vulputate velit urna.</p>
-          <p><a href="mailto:sales@theseocompany.com" class="external-links">sales@theseocompany.com</a></p>
+          <p>STADY는 여러가지 시험을 준비하는 사람들을 위한 피드백을 제공하는 기업입니다.</br>
+            본인의 열정을 투자하는 사람들의 데이터를 모으고, 적절히 가공하여 이들에게 의미 있는 통계 데이터를 제공합니다.</br>
+            STADY를 이용해주시는 모든 분, 그리고 STADY 스스로도 많은 발전이 있길 기원합니다.</p>
+          <p>여러가지 피드백 <a href="mailto:support@stady.co.kr" class="external-links">support@stady.co.kr</a></p>
         </div>
       </div> 
       <div class="divider"></div>
       <div class="row">
         <div class="col-md-6 col-xs-12">
-            <a href="#"><i class="icon ion-logo-facebook"></i></a>
+            <!-- <a href="#"><i class="icon ion-logo-facebook"></i></a>
             <a href="#"><i class="icon ion-logo-instagram"></i></a>
             <a href="#"><i class="icon ion-logo-twitter"></i></a>
-            <a href="#"><i class="icon ion-logo-youtube"></i></a>
+            <a href="#"><i class="icon ion-logo-youtube"></i></a> -->
           </div>
           <div class="col-md-6 col-xs-12">
-            <small>2018 &copy; All rights reserved. Made by <a href="http://templune.com/" target="blank" class="external-links">Templune</a></small>
+            <small>STADY 2018 &copy; All rights reserved.</small>
           </div>
       </div>
     </div>
-  </footer> -->
+  </footer>
   <!--  E N D  F O O T E R  -->
     
 

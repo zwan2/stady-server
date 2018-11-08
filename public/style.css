@@ -59,7 +59,7 @@
 
 body {
 	font-family: 'Roboto', sans-serif;
-	color: #3a3f52;
+	color: #363232;
 	word-break: keep-all;
 	word-wrap: break-word;
 }
@@ -83,7 +83,7 @@ p {
 	font-size: 14px;
 	font-weight: 500;
 	letter-spacing: .05em;
-	color: #53627C;
+	color: #363232;
 }
 
 ul {
@@ -195,17 +195,22 @@ a:link, a:visited, a:hover {
 .version_log {
 	display: table !important;
 }
-.white-center-icon {
+
+.circle-btn {
 	width: 2.5em;
 	height: 2.5em;
 	border-radius: 50%;
 	text-align: center;
 	vertical-align: middle;
 	display: table-cell !important;
-
-	background-color: #0095f7;
+	background-color: #D32F2F;
 	color: #ffffff !important;
-	
+}
+
+.circle-btn:hover {
+	text-decoration: none;
+	background-color: #9c1313;
+	color: #ffffff;
 }
 
 .btn:hover {
@@ -213,7 +218,7 @@ a:link, a:visited, a:hover {
 }
 
 .btn-regular {
-	background-color: #0095f7;
+	background-color: #D32F2F;
 	color: #ffffff;
 	
 	letter-spacing: .1em;
@@ -223,13 +228,13 @@ a:link, a:visited, a:hover {
 
 
 .btn-regular:hover {
-	background-color: #0191f0;
+	background-color: #9c1313;
 	color: #ffffff;
 }
 
 .btn-demo {
 	color: #ffffff;
-	background-color: #6772e5;
+	background-color: #D32F2F;
 	letter-spacing: .1em;
 	padding: 15px 48px;
 	display: inline-block;
@@ -239,17 +244,17 @@ a:link, a:visited, a:hover {
 
 .btn-demo:hover {
 	color: #ffffff;
-	background-color: #636ee1;
+	background-color: #D32F2F;
 }
 
 .btn-demo-small {
 	font-size: 12px;
-	background-color: #6772e5;
+	background-color: #D32F2F;
 	padding: 1px 4px;
 }
 
 .btn-demo-small:hover {
-	background-color: #636ee1;
+	background-color: #9c1313;
 }
 
 .btn-demo-small a {
@@ -258,7 +263,7 @@ a:link, a:visited, a:hover {
 
 .btn-buy {
 	color: #ffffff;
-	background-color: #0095f7;
+	background-color: #D32F2F;
 	letter-spacing: .1em;
 	padding: 15px 48px;
 	display: inline-block;
@@ -267,7 +272,7 @@ a:link, a:visited, a:hover {
 }
 
 .btn-buy:hover {
-	background-color: #0191f0;
+	background-color: #9c1313;
 	color: #ffffff;
 }
 
@@ -276,7 +281,7 @@ a:link, a:visited, a:hover {
 ===============================================*/
 
 #hero {
-	background-color: #f6f8f9;
+	background-color: #fbf8f8;
 }
 
 #hero h1 {
@@ -302,7 +307,7 @@ a:link, a:visited, a:hover {
 
 #hero span {
 	font-weight: 400;
-    color: #0095f7;
+    color: #D32F2F;
     text-transform: uppercase;
     letter-spacing: .05em;
 }
@@ -311,6 +316,15 @@ a:link, a:visited, a:hover {
    5. Download
 ===============================================*/
 
+#download {
+	padding-top: 8%;
+	padding-bottom: 8%;
+}
+
+.changes {
+	padding-left: 10px;
+}
+
 .changes ul {
 	padding-left: 10px;
 }
@@ -318,38 +332,39 @@ a:link, a:visited, a:hover {
 .changes li {
 	font-size: 14px;
 	font-weight: 300;
-	color: #8da2b5;
+	color: #847b7b;
 	letter-spacing: .1em;
 	margin: 1em 0;
 }
 
 .changes span {
 	font-weight: 500;
-	color: #0095f7;
+	color: #D32F2F;
 }
 
 .changes small {
-	color: #8da2b5;
+	color: #847b7b;
+	font-size: 18px;
 	letter-spacing: .2em;
 }
 
 .changes i {
 	font-size: 20px;
-	color: #0095f7;
+	color: #D32F2F;
 	margin: 0 0 0 0;
 }
 
 #download p {
 	font-size: 20px;
     font-weight: 400;
-    color: #8da2b5;
+    color: #847b7b;
     margin-bottom: 0px;
     padding: 0px;
 }
 
 #download span {
 	font-weight: 400;
-	color: #0095f7;
+	color: #D32F2F;
 	text-transform: uppercase;
 	letter-spacing: .05em;
 }
@@ -534,9 +549,9 @@ a:link, a:visited, a:hover {
 ===============================================*/
 
 footer {
-	background-color: #292c31;
+	background-color: #2a2626;
     padding: 60px 0;
-    color: #62656a;
+    color: #797070;
 }
 
 footer h5 {
@@ -547,9 +562,9 @@ footer h5 {
 }
 
 footer p {
-	font-size: 12px;
-	font-weight: 300;
-	color: #62656a;
+	font-size: 16px;
+	font-weight: 400;
+	color: #797070;
 	text-align: justify;
 	padding: 0px;
 }
@@ -563,31 +578,31 @@ footer li {
 }
 
 footer a {
-	color: #62656a;
+	color: #797070;
 }
 
 footer a:hover {
-	color: #0095f7;
+	color: #D32F2F;
 	text-decoration: none;
 }
 
 footer i {
 	font-size: 25px;
-	color: #62656a;
+	color: #797070;
 	margin-right: 10px;
 }
 
 footer i:hover {
-	color: #0095f7;
+	color: #D32F2F;
 }
 
 footer small {
-	color: #62656a;
+	color: #797070;
 	float: right;
 }
 
 .external-links {
-	color: #0095f7;
+	color: #D32F2F;
 }
 
 /* ==============================================
