@@ -192,24 +192,13 @@ a:link, a:visited, a:hover {
 	box-shadow: 0 2px 3px 0 rgba(0,0,0,.05), 0 1px 2px 0 rgba(0,0,0,.08);
 }
 
-.circle-btn {
-	font-size: 14px;
-	font-weight: 400;
-	width: 50px;
-	height: 50px;
-	border-radius: 50%;
-	box-shadow: 0 2px 3px 0 rgba(0,0,0,.05), 0 1px 2px 0 rgba(0,0,0,.08);
-    position:relative;
-}
 .version_log {
 	display: table !important;
 }
 .white-center-icon {
 	width: 2.5em;
 	height: 2.5em;
-
 	border-radius: 50%;
-
 	text-align: center;
 	vertical-align: middle;
 	display: table-cell !important;
