@@ -14,8 +14,11 @@ router.get('/', function (req, res, next) {
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
 router.get('/loadMain', isAuthenticated, function (req, res, next) {
-    moment.tz.guess();
-    console.log(moment().format('YYYY-MM-DD HH:mm:ss'));
+    console.log(moment.tz.guess());
+    
+    var newYork = moment.tz(moment().format('YYYY-MM-DD HH:mm'), moment.tz.guess());
+    console.log(newYork);
+    
     //[1] loadSettings
     var examAddress, subjectIds, examTitle;
     var querySelectSettings = "SELECT exam_address, subject_ids FROM user_settings WHERE user_id = ?";
