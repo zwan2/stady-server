@@ -16,7 +16,7 @@ global.isAuthenticated = function (req, res, next) {
     //console.log(req.body.userId);
     return next();
   }
-  res.redirect('/users/');
+  res.sendStatus(401);
 };
 
 global.crypted = function (password) {
@@ -174,8 +174,6 @@ router.post('/findPassword', function(req, res, next) {
 
   });
   
-
-
   
 });
 
@@ -205,6 +203,7 @@ router.post('/withdrawal', isAuthenticated, function (req, res, next) {
 
 //5. 비밀번호 변경
 // REQ: email, currentPassword, newPassword
+// 성공: redirect /logout, 실패: 412
 router.post('/changePassword', isAuthenticated, function (req, res, next) {
   var encryptedCurrentPassword = crypted(req.body.currentPassword);
   var encryptedNewPassword = crypted(req.body.newPassword);
@@ -216,19 +215,22 @@ router.post('/changePassword', isAuthenticated, function (req, res, next) {
     
     //인증 실패
     if (rows1[0] == null) {
-      return res.sendStatus(401);
+      return res.sendStatus(412);
     }
 
     //인증 성공
     else {
       db.get().query(queryUpdateAccount, [encryptedNewPassword, rows1[0].id], function (err, rows2) {
         if (err) return res.status(400).send(err);
-        
+          return res.redirect('/users/logout');
+        /*
         if(rows2.affectedRows != 0) {
-          return res.sendStatus(200);
+          return res.redirect('/users/logout');
+          //return res.sendStatus(200);
         } else {
           return res.sendStatus(204);
-        }
+        }*/
+
       });
     }
   });

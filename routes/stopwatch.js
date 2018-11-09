@@ -1,7 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var db = require('../config/db');
+
 var moment = require('moment');
+var moment = require('moment-timezone');
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -12,7 +14,8 @@ router.get('/', function (req, res, next) {
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
 router.get('/loadMain', isAuthenticated, function (req, res, next) {
-    
+    moment.tz.guess();
+    console.log(moment().format('YYYY-MM-DD HH:mm:ss'));
     //[1] loadSettings
     var examAddress, subjectIds, examTitle;
     var querySelectSettings = "SELECT exam_address, subject_ids FROM user_settings WHERE user_id = ?";
