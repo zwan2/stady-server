@@ -14,10 +14,6 @@ router.get('/', function (req, res, next) {
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
 router.get('/loadMain', isAuthenticated, function (req, res, next) {
-    console.log(moment.tz.guess());
-    
-    var newYork = moment.tz(moment().format('YYYY-MM-DD HH:mm'), moment.tz.guess());
-    console.log(newYork);
     
     //[1] loadSettings
     var examAddress, subjectIds, examTitle;
@@ -50,8 +46,9 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
             db.get().query(querySelectSubjects, function (err, rows3) {
                 if (err) return res.status(400).send(err);
-
-                var nowTime = moment().format('YYYY-MM-DD');
+                
+                console.log(moment().tz("Asia/Seoul").format('YYYY-MM-DD HH:mm'));
+                var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
              
                 //console.log(subjectIds);
