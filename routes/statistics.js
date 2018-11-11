@@ -70,17 +70,17 @@ function getContinuousConcentrationScore(cc) {
 }
 
 function getRank(score) {
-    if (score >= 29) {
+    if (score >= 26) {
         return "A+";
-    } else if (score >= 27) {
+    } else if (score >= 23) {
         return "A";
-    } else if (score >= 24) {
+    } else if (score >= 20) {
         return "B+";
-    } else if (score >= 21) {
+    } else if (score >= 17) {
         return "B";
-    } else if (score >= 18) {
+    } else if (score >= 14) {
         return "C+";
-    } else if (score >= 15) {
+    } else if (score >= 12) {
         return "C";
     } else {
         return "F";
@@ -185,30 +185,40 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
     var userId = req.query.userId;
-    console.log(userId);
-    
+
     var selectMonthlyTotal = "SELECT SUM(term) AS total, " +
                                     "COUNT(term) AS count_term, " +
                                     "(SELECT today_goal FROM user_goals WHERE user_id = ? ORDER BY reg_time DESC LIMIT 1) AS goal FROM histories " +
                                     "WHERE user_id = ? AND " +
                                     "date(end_point) >= date(subdate(now(), INTERVAL 30 DAY)) AND " +
                                     "date(end_point) <= date(now())";
-
-    db.get().query(selectMonthlyTotal, [userId, userId], function (err, rows) {
-        console.log(rows[0]);
-        
+    //startDate, endDate 불러오기
+    var selectStartEndDate = "(SELECT MIN(end_point) AS startDate, MAX(end_point) AS endDate FROM histories " 
+                                +"WHERE user_id = ? AND end_point BETWEEN DATE_ADD(NOW(),INTERVAL -1 MONTH ) AND NOW() LIMIT 1)";
+    
+    db.get().query(selectMonthlyTotal, [userId, userId], function (err, rows1) {
         if (err) return res.status(400).send(err);
+        db.get().query(selectStartEndDate, [userId, userId], function (err, rows2) {
+            if (err) return res.status(400).send(err);
+            
+            var duration = moment.duration(moment(rows2[0].endDate).diff(rows2[0].startDate));
+            
+            var avgT = rows1[0].total / duration._data.days;
+            var avgAR = rows1[0].total / rows1[0].goal;
+            var avgCC = rows1[0].total / rows1[0].count_term;
+            
+            var result = {
+                rank: loadRank(avgT, avgAR, avgCC),
+                startDate: rows2[0].startDate,
+                endDate: rows2[0].endDate
+            }
 
+            return res.status(200).send(result);
+        });
+        //  30/공부일자를 곱해서 보정해준다.
+        //공부일자만 알면 된다.
         
-        var avgT = rows[0].total/30;
-        var avgAR = rows[0].total / rows[0].goal;
-        var avgCC = rows[0].total / rows[0].count_term;
-        
-        console.log(avgT);
-        console.log(avgAR);
-        console.log(avgCC);
-
-        return res.status(200).send(loadRank(avgT, avgAR, avgCC));
+    
     });
 
 });

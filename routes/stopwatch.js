@@ -46,8 +46,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
             db.get().query(querySelectSubjects, function (err, rows3) {
                 if (err) return res.status(400).send(err);
-                
-                console.log(moment().tz("Asia/Seoul").format('YYYY-MM-DD HH:mm'));
+
+                //console.log(moment().tz("Asia/Seoul").format('YYYY-MM-DD HH:mm'));
                 var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
              
