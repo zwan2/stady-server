@@ -71,7 +71,7 @@ CREATE TABLE statistics(
     base_date DATE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
 );
-
+ALTER TABLE statistics ADD UNIQUE INDEX (user_id, exam_address, subject_id, study_id, base_date);
 
 
 

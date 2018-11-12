@@ -13,11 +13,12 @@ router.get('/', function (req, res, next) {
 
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
+
 router.get('/loadMain', isAuthenticated, function (req, res, next) {
     
     //[1] loadSettings
     var examAddress, subjectIds, examTitle;
-    var querySelectSettings = "SELECT exam_address, subject_ids FROM user_settings WHERE user_id = ?";
+    var querySelectSettings = "SELECT exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
     var querySelectExamCat = "(SELECT title FROM exam_cat0 WHERE id = ?) UNION (SELECT title FROM exam_cat1 WHERE id = ?) UNION (SELECT title FROM exam_cat2 WHERE id = ?)"
     //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
@@ -40,20 +41,32 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
             } 
             //이외
             else {
-                examTitle = rows2[0].title + " · " + rows2[1].title;
+                examTitle = rows2[1].title;
             }
             
             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
             db.get().query(querySelectSubjects, function (err, rows3) {
                 if (err) return res.status(400).send(err);
 
-                //console.log(moment().tz("Asia/Seoul").format('YYYY-MM-DD HH:mm'));
-                var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
-                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
-             
-                //console.log(subjectIds);
+                //var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
 
+                //유저별 시간 offset 적용
+                //기준시간, offset시간
+                //var baseTime = moment(req.body.endPoint).format("YYYY-MM-DD HH:mm:ss").set({ 'hour': 0, 'minute': 0, 'second': 0, 'millisecond': 0});
+                var baseTime = moment(req.body.endPoint).format("YYYY-MM-DD 00:00:00");
+                var offsetTime = moment(baseTime).set('hour', rows1[0].time_offset);
+                //console.log(baseTime);
+                //console.log(offsetTime);
+
+                //예외처리(기준 시간보다 작은 경우)
+                if(req.body.endPoint < offsetTime) {
+                    offsetTime = moment(offsetTime).set('date', -1);
+                }
+                offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
+                
+                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
                 var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? GROUP BY subject_id";
+                
                 //[2] LoadHistory
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
                     if (err) return res.status(400).send(err);
@@ -66,7 +79,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                         }
                     }
                     
-                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, nowTime], function (err, rows5) {
+                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, offsetTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
                         for (var i in rows5) {
@@ -142,18 +155,27 @@ router.post('/setGoal', isAuthenticated, function (req, res, next) {
   
 });
 
-// 스톱워치 정지 기능
+// 스톱워치 정지 기능 histories, statistics table 모두 저장
 // REQ: userId, examaddress, subjectId, studyId, startPoint, endPoint, term
 router.post('/stop', isAuthenticated, function (req, res, next) {
-    var queryInsertData = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
-    //var queryDuplicateData =
-    db.get().query(queryInsertData, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
+    //var base_date = moment(req.body.endPoint, "YYYY-MM-DD");
+    
+    var queryInsertHis = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
+    var queryDuplicateStat = "INSERT INTO statistics (user_id, exam_address, subject_id, study_id, today_total, base_date) VALUES (?, ?, ?, ?, ?, ?)"
+                                + "ON DUPLICATE KEY UPDATE today_total = today_total + ?"
+
+    db.get().query(queryInsertHis, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        db.get().query(queryDuplicateStat, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.term, req.body.endPoint, req.body.term], function (err, rows) {
+            if (err) return res.status(400).send(err);
+
             return res.sendStatus(200);
-        }
+        });
+               
+        
     });
+
+    
 })
 
 
