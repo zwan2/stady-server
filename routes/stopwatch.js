@@ -48,13 +48,19 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
             db.get().query(querySelectSubjects, function (err, rows3) {
                 if (err) return res.status(400).send(err);
 
-                //var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
 
                 //유저별 시간 offset 적용
                 //기준시간, offset시간
                 //var baseTime = moment(req.body.endPoint).format("YYYY-MM-DD HH:mm:ss").set({ 'hour': 0, 'minute': 0, 'second': 0, 'millisecond': 0});
+              
+                
+                //time_offset(분) -> offsetHour,offsetMinute(시,분)
                 var baseTime = moment(req.body.endPoint).format("YYYY-MM-DD 00:00:00");
-                var offsetTime = moment(baseTime).set('hour', rows1[0].time_offset);
+                var offsetHour = parseInt(rows1[0].time_offset / 60);
+                var offsetMinute = rows1[0].time_offset % 60;             
+                
+                var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
+                
                 //console.log(baseTime);
                 //console.log(offsetTime);
 

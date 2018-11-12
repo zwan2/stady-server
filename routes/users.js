@@ -328,5 +328,16 @@ router.post('/changeName', isAuthenticated, function (req, res, next) {
   });
 });
 
+//맞춰보기
+//6. 닉네임 변경
+//REQ: userId, timeOffset(분 단위)
+router.post('/changeTimeOffset', isAuthenticated, function (req, res, next) {
+  var queryUpdateTimeOffset = "UPDATE user_settings SET time_offset = ? WHERE user_id = ?";
+  if (err) return res.status(400).send(err);
+  db.get().query(queryUpdateTimeOffset, [req.body.timeOffset, req.body.userId], function (err, rows1) {
+    return res.sendStatus(200);
+  });
+});
+
 
 module.exports = router;
