@@ -18,14 +18,14 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
     
     //[1] loadSettings
     var examAddress, subjectIds, examTitle;
-    var querySelectSettings = "SELECT exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
+    var querySelectSettings = "SELECT name, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
     var querySelectExamCat = "(SELECT title FROM exam_cat0 WHERE id = ?) UNION (SELECT title FROM exam_cat1 WHERE id = ?) UNION (SELECT title FROM exam_cat2 WHERE id = ?)"
     //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
         if (err) return res.status(400).send(err);
         
         //반드시 rows1[0].exam_address으로 검사
-        if(rows1[0].exam_address == undefined) {            
+        if(rows1[0] == undefined || rows1[0].exam_address == undefined) {            
             return res.sendStatus(401);
         } 
         else {
@@ -61,8 +61,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                 
                 var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
                 
-                //console.log(baseTime);
-                //console.log(offsetTime);
+                console.log(baseTime);
+                console.log(offsetTime);
 
                 //예외처리(기준 시간보다 작은 경우)
                 if(req.body.endPoint < offsetTime) {
@@ -94,6 +94,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                         
                         var loadSettingsResult = {
                             "settings": {
+                                "name": rows1[0].name,
                                 "examTitle": examTitle,
                                 "subjectTitles": rows3,
                                 "examAddress": rows1[0].exam_address,

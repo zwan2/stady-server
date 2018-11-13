@@ -62,6 +62,7 @@ router.post('/login',
 });
 
 
+
 //1.2. 로그아웃
 router.get('/logout', function (req, res) {
   req.logout();
@@ -222,7 +223,9 @@ router.post('/changePassword', isAuthenticated, function (req, res, next) {
     else {
       db.get().query(queryUpdateAccount, [encryptedNewPassword, rows1[0].id], function (err, rows2) {
         if (err) return res.status(400).send(err);
-          return res.redirect('/users/logout');
+          return res.redirect('/users/logout', {
+            
+          });
         /*
         if(rows2.affectedRows != 0) {
           return res.redirect('/users/logout');
@@ -266,6 +269,8 @@ router.post('/changeName', isAuthenticated, function (req, res, next) {
 });
 
 
+/*
+//아직안씀~
 //7. 정보 변경
 // REQ: email, password, name, gender, birthDate
 router.post('/edit', isAuthenticated, function (req, res, next) {
@@ -297,39 +302,9 @@ router.post('/edit', isAuthenticated, function (req, res, next) {
 
   });
 });
-
-
-//6. 닉네임 변경
-// REQ: email, name
-router.post('/changeName', isAuthenticated, function (req, res, next) {
-  var querySelectAccount = "SELECT id FROM user_accounts WHERE account_id = ?";
-  var queryUpdateSetting = "UPDATE user_settings SET name = ? WHERE user_id = ?";
-
-  db.get().query(querySelectAccount, req.body.email, function (err, rows1) {
-    if (err) return res.status(400).send(err);
-    
-    //회원 검색 실패
-    if (rows1[0].id == null) {
-      return res.sendStatus(401);
-    }
-
-    //회원 검색 성공
-    else {
-      db.get().query(queryUpdateSetting, [req.body.name, rows1[0].id], function (err, rows2) {
-        if (err) return res.status(400).send(err);
-        
-        if(rows2.affectedRows != 0) {
-          return res.sendStatus(200);
-        } else {
-          return res.sendStatus(204);
-        }
-      });
-    }
-  });
-});
+*/
 
 //맞춰보기
-//6. 닉네임 변경
 //REQ: userId, timeOffset(분 단위)
 router.post('/changeTimeOffset', isAuthenticated, function (req, res, next) {
   var queryUpdateTimeOffset = "UPDATE user_settings SET time_offset = ? WHERE user_id = ?";

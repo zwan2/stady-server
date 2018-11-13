@@ -70,17 +70,17 @@ function getContinuousConcentrationScore(cc) {
 }
 
 function getRank(score) {
-    if (score >= 26) {
+    if (score >= 27) {
         return "A+";
-    } else if (score >= 23) {
+    } else if (score >= 24) {
         return "A";
-    } else if (score >= 20) {
+    } else if (score >= 21) {
         return "B+";
-    } else if (score >= 17) {
+    } else if (score >= 18) {
         return "B";
-    } else if (score >= 14) {
+    } else if (score >= 15) {
         return "C+";
-    } else if (score >= 12) {
+    } else if (score >= 13) {
         return "C";
     } else {
         return "F";
@@ -215,14 +215,23 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 
             return res.status(200).send(result);
         });
-        //  30/공부일자를 곱해서 보정해준다.
-        //공부일자만 알면 된다.
-        
     
     });
 
 });
 
+
+router.get('/loadRanking', isAuthenticated, function (req, res, next) {
+    var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)"; +
+                                " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)" +
+                                " UNION SELECT COUNT(*) AS total FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)";
+    console.log('a');
+    
+    db.get().query(querySelectRanking, [req.query.userId, req.query.userId, req.query.userId], function (err, rows) {
+    console.log(rows);
+        return res.status(200).send(rows);
+    });
+});
 
 
 module.exports = router;
