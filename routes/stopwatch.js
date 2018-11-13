@@ -61,14 +61,18 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                 var offsetMinute = rows1[0].time_offset % 60;             
                 
                 var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
+                console.log(nowTime);
                 
                 console.log(baseTime);
                 console.log(offsetTime);
 
                 //예외처리(기준 시간보다 작은 경우)
-                if(nowTime < offsetTime) {
-                    offsetTime = moment(offsetTime).set('date', -1);
+                if(nowTime >= offsetTime) {
+                    console.log('date +1');
+                    
+                    offsetTime = moment(offsetTime).set('date', +1);
                 }
+
                 offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
                 
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
