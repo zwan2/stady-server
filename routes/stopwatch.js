@@ -65,10 +65,12 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                
 
                 //예외처리(기준 시간보다 작은 경우)
-                if(nowTime <= offsetTime) {
-                    console.log('date -1');
+                if (nowTime <= moment(offsetTime).format("YYYY-MM-DD HH:mm:ss")) {
+                    console.log("전찐:" + offsetTime);
                     
-                    offsetTime = moment(offsetTime).set('date', -1);
+                    offsetTime = moment(offsetTime).subtract(1, 'days');
+                    console.log("찐:"+offsetTime);
+                    
                 }
 
                 offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
