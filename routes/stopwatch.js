@@ -55,7 +55,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
               
                 
                 //time_offset(분) -> offsetHour,offsetMinute(시,분)
-                var baseTime = moment(req.body.endPoint).format("YYYY-MM-DD 00:00:00");
+                var nowTime =moment().format("YYYY-MM-DD HH:mm:ss");
+                var baseTime = moment().format("YYYY-MM-DD 00:00:00");
                 var offsetHour = parseInt(rows1[0].time_offset / 60);
                 var offsetMinute = rows1[0].time_offset % 60;             
                 
@@ -65,13 +66,13 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                 console.log(offsetTime);
 
                 //예외처리(기준 시간보다 작은 경우)
-                if(req.body.endPoint < offsetTime) {
+                if(nowTime < offsetTime) {
                     offsetTime = moment(offsetTime).set('date', -1);
                 }
                 offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
                 
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
-                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? GROUP BY subject_id";
+                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
                 
                 //[2] LoadHistory
                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
@@ -85,7 +86,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                         }
                     }
                     
-                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, offsetTime], function (err, rows5) {
+                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
                         for (var i in rows5) {

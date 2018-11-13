@@ -226,7 +226,7 @@ router.get('/loadRanking', isAuthenticated, function (req, res, next) {
     //SELECT all
     //var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)" +
     //                            " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)";
-    var querySelectRanking = "SELECT COUNT(*)+1 AS total_number, SUM(today_total) AS total_time FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) GROUP BY exam_address, user_id";
+    var querySelectRanking = "SELECT COUNT(*)+1 AS total_user, SUM(today_total) AS total_time FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) GROUP BY exam_address, user_id";
     console.log('a');
     
     db.get().query(querySelectRanking, [req.query.userId, req.query.userId, req.query.userId], function (err, rows) {
