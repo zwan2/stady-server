@@ -308,8 +308,9 @@ router.post('/edit', isAuthenticated, function (req, res, next) {
 //REQ: userId, timeOffset(분 단위)
 router.post('/changeTimeOffset', isAuthenticated, function (req, res, next) {
   var queryUpdateTimeOffset = "UPDATE user_settings SET time_offset = ? WHERE user_id = ?";
-  if (err) return res.status(400).send(err);
+
   db.get().query(queryUpdateTimeOffset, [req.body.timeOffset, req.body.userId], function (err, rows1) {
+    if (err) return res.status(400).send(err);
     return res.sendStatus(200);
   });
 });

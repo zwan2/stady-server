@@ -98,7 +98,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                                 "examTitle": examTitle,
                                 "subjectTitles": rows3,
                                 "examAddress": rows1[0].exam_address,
-                                "subjectIds": rows1[0].subject_ids
+                                "subjectIds": rows1[0].subject_ids,
+                                "timeOffset": rows1[0].time_offset
                             },
                             "history": {
                                 "goals" : rows4[0],

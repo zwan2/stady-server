@@ -220,16 +220,20 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 
 });
 
-
+//기획이 먼저 필요하다
+//현재 테이블로 해결 가능.
 router.get('/loadRanking', isAuthenticated, function (req, res, next) {
-    var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)"; +
-                                " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)" +
-                                " UNION SELECT COUNT(*) AS total FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)";
+    //SELECT all
+    //var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)" +
+    //                            " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)";
+    var querySelectRanking = "SELECT COUNT(*)+1 AS total_number, SUM(today_total) AS total_time FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) GROUP BY exam_address, user_id";
     console.log('a');
     
     db.get().query(querySelectRanking, [req.query.userId, req.query.userId, req.query.userId], function (err, rows) {
-    console.log(rows);
-        return res.status(200).send(rows);
+    //console.log(rows[0].ranking);
+        var result = rows[0];
+
+        return res.status(200).send(result);
     });
 });
 
