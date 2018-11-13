@@ -55,26 +55,27 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
               
                 
                 //time_offset(분) -> offsetHour,offsetMinute(시,분)
-                var nowTime =moment().format("YYYY-MM-DD HH:mm:ss");
+                var nowTime = moment().format("YYYY-MM-DD HH:mm:ss");
                 var baseTime = moment().format("YYYY-MM-DD 00:00:00");
                 var offsetHour = parseInt(rows1[0].time_offset / 60);
                 var offsetMinute = rows1[0].time_offset % 60;             
                 
                 var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
-                console.log(nowTime);
-                
-                console.log(baseTime);
-                console.log(offsetTime);
+               
 
                 //예외처리(기준 시간보다 작은 경우)
-                if(nowTime >= offsetTime) {
-                    console.log('date +1');
+                if(nowTime <= offsetTime) {
+                    console.log('date -1');
                     
-                    offsetTime = moment(offsetTime).set('date', +1);
+                    offsetTime = moment(offsetTime).set('date', -1);
                 }
 
                 offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
-                
+            
+                console.log(nowTime);
+
+                console.log(baseTime);
+                console.log(offsetTime);
                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
                 var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
                 
