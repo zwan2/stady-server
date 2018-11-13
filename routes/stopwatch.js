@@ -55,7 +55,8 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
               
                 
                 //time_offset(분) -> offsetHour,offsetMinute(시,분)
-                var nowTime = moment().format("YYYY-MM-DD HH:mm:ss");
+                var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
+                //var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
                 var baseTime = moment().format("YYYY-MM-DD 00:00:00");
                 var offsetHour = parseInt(rows1[0].time_offset / 60);
                 var offsetMinute = rows1[0].time_offset % 60;             
