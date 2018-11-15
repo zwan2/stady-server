@@ -5,10 +5,347 @@ var db = require('../config/db');
 var moment = require('moment');
 var moment = require('moment-timezone');
 
-/* GET users listing. */
-router.get('/', function (req, res, next) {
-    res.send('respond with a resource');
+
+
+
+/**
+ * GET: /loadSettings
+ * QUERY: userId, updatedAt
+ * RESPOND: 
+ */
+router.get('/loadSettings', isAuthenticated, function (req, res) {
+    loadSettings(req.query.userId, req.query.updatedAt, function(err, code, settings) {
+        if (err) return sendError(res, err);
+        if (code) return sendCode(res, code);
+        return res.status(200).send(settings);
+    });
 });
+
+global.loadSettings = function(userId, updatedAt, callback) {
+    isUpdateAvailable("user_settings", userId, updatedAt, function(err, available, updatedAt) {
+        if (err) return callback(err);
+
+        else if (available == null) {
+            //Unauthorized
+            return callback(null, 401);
+        }
+
+        else if (available) {
+            //There is update. We need to send a new information.
+            getSettings(userId, function(err, code, name, examAddress, subjectIds, timeOffset) {
+                if (err) return callback(err);
+    
+                if (code) return callback(null, 401);
+
+                loadTitles(examAddress, function(err, examTitle) {
+                    if (err) return callback(err);
+
+                    loadSubjectTitles(subjectIds, function(err, subjectTitles) {
+                        if (err) return callback(err);
+
+
+                        if (subjectIds.length != subjectTitles.length) {
+                            return callback("Count of subject ids and titles are different. Weird!");
+                        }
+
+                        var exam = {
+                            address: examAddress,
+                            title: examTitle
+                        }
+
+                        var subjects = new Array();
+                        for (var i=0 ; i<subjectIds.length ; i++) {
+                            subjects[i] = {
+                                id: subjectIds[i],
+                                title: subjectTitles[i]
+                            }
+                        }
+                        var settings = {
+                            name: name,
+                            timeOffset: timeOffset,
+                            updatedAt: updatedAt,
+                            exam: exam,
+                            subjects: subjects
+                        }
+
+                        return callback(null, null, settings);
+                    });
+                });
+            });
+        }
+        else {
+            return callback(null, 204);
+        }
+    });
+}
+
+/**
+ * Check update availability and returns boolean value.
+ * @param {The table name to check the update} tableName 
+ * @param {The user id to check the update} userId 
+ * @param {The updated time of local client} updatedAt 
+ * @param {*} callback 
+ */
+global.isUpdateAvailable = function(tableName, userId, updatedAt, callback) {
+    var queryCheckUpdate = "SELECT updated_at AS updatedAt FROM " + tableName + " WHERE user_id = ? LIMIT 1";
+
+    db.get().query(queryCheckUpdate, userId, function (err, rows) {
+        if (err) callback(err);
+        
+
+        else if (rows[0] == undefined) {
+            callback(null, null, null);
+        }
+        else {
+            var dbAt = moment(rows[0].updatedAt).format('YYYY-MM-DD HH:mm:ss');
+
+            if (dbAt != updatedAt) {
+                callback(null, true, dbAt);
+            }
+            else {
+                callback(null, false, null);
+            }
+        }
+    });
+}
+
+/**
+ * getSettings returns exam address and subject ids of the user.
+ * @param {Id of user on db} userId 
+ * @param {Callback to return result of query} callback 
+ */
+global.getSettings = function(userId, callback) {
+    var querySelectSettings = "SELECT name, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
+
+    db.get().query(querySelectSettings, userId, function (err, rows) {
+        if (err) callback(err);
+        else if (rows[0] == undefined) {
+            callback(null, 401, null, null);
+        }
+        else {
+            callback(null, null, rows[0].name, rows[0].exam_address.split('_'), rows[0].subject_ids.split(','), rows[0].time_offset);
+        }
+    });
+}
+
+/**
+ * loadTitles returns title of the corresponding examAddress
+ * @param {*} examAddress 
+ * @param {*} callback 
+ */
+global.loadTitles = function(examAddress, callback) {
+    var querySelectExamCat = "(SELECT title FROM exam_cat0 WHERE id = ?) UNION (SELECT title FROM exam_cat1 WHERE id = ?) UNION (SELECT title FROM exam_cat2 WHERE id = ?)"
+
+    db.get().query(querySelectExamCat, [examAddress[0], examAddress[1], examAddress[2]], function (err, rows) {
+        if (err) callback(err);
+        else {
+            var examTitle;
+
+            //공무원
+            if(examAddress[0] == 1) {
+                examTitle = rows[1].title + " · " + rows[2].title;
+            } 
+            //이외
+            else {
+                examTitle = rows[0].title + " · " + rows[1].title;
+            }
+
+            callback(null, examTitle);
+        }
+    });
+}
+
+/**
+ * loadSubjectTitles returns title of the corresponding subjectIds
+ * @param {*} subjectIds 
+ * @param {*} callback 
+ */
+global.loadSubjectTitles = function(subjectIds, callback) {
+    var querySelectSubjects = "SELECT title FROM subjects WHERE id IN ( " + subjectIds + " )";
+
+    db.get().query(querySelectSubjects, function (err, rows) {
+        if (err) callback(err);
+        else {
+            var titles = new Array();
+            for (var i=0 ; i<rows.length ; i++) {
+                titles[i] = rows[i].title;
+            }
+
+            callback(null, titles);
+        }
+    });
+}
+
+//REQ: userId RES: JSON
+//메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
+//REQ: userId, updatedAt, examAddress, subjectIds, timeOffset
+router.get('/loadMain', isAuthenticated, function (req, res, next) {
+
+    var userId = req.query.userId;
+    var updatedAt = req.query.updatedAt;
+    if (userId == null || updatedAt == null) {
+        return sendCode(res, 400);
+    }
+
+    //만약 데이터를 보내지 않으면 updatedAt 과 상관없이 무조건 loadSettings를 하도록 만듦
+    var examAddress = req.query.examAddress;
+    var subjectIds = req.query.subjectIds;
+    var timeOffset = req.query.timeOffset;
+    if (examAddress == null || subjectIds == null || timeOffset == null) {
+        updatedAt = 0;
+    }
+
+    loadSettings(userId, updatedAt, function(err, code, settings) {
+        if (err) return sendError(res, err);
+
+        if (code) {
+            if (code == 204) {
+
+                //loadHistory with body
+                loadHistory(userId, examAddress, subjectIds, timeOffset, function() {
+                    var result = {
+                        history: history
+                    }
+
+                    return res.status(200).send(result);
+                });
+            }
+            else return sendCode(res, code);
+        }
+        else {
+            //loadHistory with settings
+
+            var examAddress = settings.exam.address.join("_");
+
+            var subjectIds = new Array();
+            for (var i=0 ; i<settings.subjects.length ; i++) {
+                subjectIds[i] = settings.subjects[i].id;
+            }
+
+            loadHistory(userId, examAddress, subjectIds, settings.timeOffset, function(err, history) {
+                if (err) return sendError(res, err);
+
+                var result = {
+                    settings: settings,
+                    history: history
+                }
+
+                return res.status(200).send(result);
+            });
+        }
+        //return res.status(200).send(settings);
+
+        
+    });
+    
+});
+
+global.loadHistory = function(userId, examAddress, subjectIds, timeOffset, callback) {
+    getGoal(userId, function(err, todayGoal, subjectGoals) {
+        if (err) return callback(err);
+
+        if (subjectGoals == null) {
+            subjectGoals = new Array();
+            for (var i in subjectIds) {
+                subjectGoals[i] = 0;
+            }
+        }
+        
+        getHistory(userId, examAddress, subjectIds, timeOffset, function(err, subjectIds, subjectTotals) {
+            if (err) return callback(err);
+
+            var todayTotal = 0;
+            for (var i=0 ; i<subjectTotals.length ; i++) {                
+                todayTotal += subjectTotals[i];
+            }
+
+            var today = {
+                goal: todayGoal,
+                total: todayTotal
+            }
+
+            var subjects = new Array();           
+
+            for (var i=0 ; i<subjectIds.length ; i++) {
+                
+                var subject = {
+                    id: subjectIds[i],
+                    total: subjectTotals[i],
+                    goal: subjectGoals[i]
+                }
+                subjects[i] = subject;
+            }
+            var history = {
+                today: today,
+                subjects: subjects
+            }
+
+            return callback(null, history);
+        });
+
+    });
+}
+
+
+global.getGoal = function(userId, callback) {
+    var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
+
+    db.get().query(querySelectGoals, userId, function (err, rows) {
+
+
+        if (err) callback(err);
+        else if (rows[0] == null) {            
+            callback("unknown error...");
+        }
+        else {
+            callback(null, rows[0].todayGoal, rows[0].subjectGoals);
+        }
+    });
+}
+
+global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callback) {
+    //유저별 시간 offset 적용
+    //기준시간, offset시간
+
+    var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
+    var baseTime = moment().format("YYYY-MM-DD 00:00:00");
+
+    var offsetHour = parseInt(timeOffset / 60);
+    var offsetMinute = timeOffset % 60;             
+    var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
+   
+
+    //예외처리(기준 시간보다 작은 경우)
+    if (nowTime <= moment(offsetTime).format("YYYY-MM-DD HH:mm:ss")) {
+        //console.log("전찐:" + offsetTime);
+        offsetTime = moment(offsetTime).subtract(1, 'days');
+        //console.log("찐:"+offsetTime);
+    }
+
+    offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
+
+    var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
+
+    db.get().query(querySelectHistory, [userId, examAddress, offsetTime, nowTime], function (err, rows) {
+        
+        if (err) callback(err);
+        else if (rows[0] == null) {
+            callback("unknown error...");
+        }
+        else {
+            var subjectIds = new Array();
+            var subjectTotals = new Array();
+
+            for (var i=0 ; i<rows.length ; i++) {
+                subjectIds[i] = rows[i].subjectId;
+                subjectTotals[i] = rows[i].subjectTotal;
+            }
+            
+            callback(err, subjectIds, subjectTotals);
+        }
+    });
+}
+
 
 
 //REQ: userId RES: JSON

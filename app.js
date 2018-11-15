@@ -69,6 +69,7 @@ app.use('/exams', require('./routes/exams'));
 app.use('/stopwatch', require('./routes/stopwatch'));
 app.use('/groups', require('./routes/groups'));
 app.use('/statistics', require('./routes/statistics'));
+require('./routes/updateTime');
 
 
 // catch 404 and forward to error handler
