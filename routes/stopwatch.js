@@ -182,7 +182,7 @@ global.loadSubjectTitles = function(subjectIds, callback) {
 router.get('/loadMain', isAuthenticated, function (req, res, next) {
 
     var userId = req.query.userId;
-    var updatedAt = 0;
+    var updatedAt = 0; //일단 기능 비활성화
     if (userId == null || updatedAt == null) {
         return sendCode(res, 400);
     }
@@ -199,7 +199,7 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
         if (err) return sendError(res, err);
 
         if (code) {
-            if (code == 204) {
+            if (code == 204) { //Not using. updatedAt 기능 비활성화해서 작동안하는부분
 
                 //loadHistory with body
                 loadHistory(userId, examAddress, subjectIds, timeOffset, function() {
@@ -222,15 +222,22 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                 subjectIds[i] = settings.subjects[i].id;
             }
 
-            loadHistory(userId, examAddress, subjectIds, settings.timeOffset, function(err, history) {
+            loadHistory(userId, examAddress, subjectIds, settings.timeOffset, function(err, today, subjects, subjectGoals) {
                 if (err) return sendError(res, err);
 
-                var result = {
-                    settings: settings,
-                    history: history
+                settings.exam.address = examAddress;
+                settings.today = today;
+
+                for (var i=0 ; i<settings.subjects.length ; i++) {
+                    for (var j=0 ; j<subjects.length ; j++) {
+                        if (settings.subjects[i].id == subjects[j].id) {
+                            settings.subjects[i].total = subjects[j].total;
+                        }
+                    }
+                    settings.subjects[i].goal = subjectGoals[i];
                 }
 
-                return res.status(200).send(result);
+                return res.status(200).send(settings);
             });
         }
         //return res.status(200).send(settings);
@@ -270,17 +277,12 @@ global.loadHistory = function(userId, examAddress, subjectIds, timeOffset, callb
                 
                 var subject = {
                     id: subjectIds[i],
-                    total: subjectTotals[i],
-                    goal: subjectGoals[i]
+                    total: subjectTotals[i]
                 }
                 subjects[i] = subject;
             }
-            var history = {
-                today: today,
-                subjects: subjects
-            }
 
-            return callback(null, history);
+            return callback(null, today, subjects, subjectGoals);
         });
 
     });
