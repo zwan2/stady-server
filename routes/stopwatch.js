@@ -182,7 +182,7 @@ global.loadSubjectTitles = function(subjectIds, callback) {
 router.get('/loadMain', isAuthenticated, function (req, res, next) {
 
     var userId = req.query.userId;
-    var updatedAt = req.query.updatedAt;
+    var updatedAt = 0;
     if (userId == null || updatedAt == null) {
         return sendCode(res, 400);
     }
