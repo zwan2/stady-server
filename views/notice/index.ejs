@@ -1,0 +1,35 @@
+<% include ../top.ejs %>
+<div class="container"> 
+    <br>
+    <h1>공지사항</h1>
+    <br>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">제목</th>
+                <th scope="col">일자</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            
+<%
+
+    notice.forEach(function (el,i) {%>
+        <tr>
+            <th scope="row">
+                <%=i+1%>
+            </th>
+
+            <td><a href="/notice/detail?id=<%=el.id%>" class="text-body"><%=el.notice%></td>
+            <td><%=el.reg_date.toLocaleDateString("ko-KR")%></td>
+
+        </tr>
+    <%});
+%>
+
+            </tr>
+        </tbody>
+    </table>
+</div>

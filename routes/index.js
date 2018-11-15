@@ -89,8 +89,43 @@ router.post('/bugReport', function (req, res, next) {
 });
 
 
-
 router.get('/privacyPolicy', function (req, res, next ){
   res.render('privacyPolicy');
+});
+
+
+router.get('/versionHistory', function (req, res, next) {
+  var querySelectLanding = "SELECT version_real, changes, updated_at FROM landing ORDER BY id DESC";
+  db.get().query(querySelectLanding, function (err, rows) {
+    console.log(rows);
+
+    res.render('versionHistory', {
+      versionHistory: rows
+    });
+
+  });
+});
+
+router.get('/notice', function(req, res, next) {
+  var querySelectNotice = "SELECT id, notice, reg_date FROM notice ORDER BY id DESC";
+  db.get().query(querySelectNotice, function (err, rows) {
+    console.log(rows);
+
+    res.render('notice/index', {
+      notice: rows
+    });
+
+  });
+});
+
+router.get('/notice/detail', function (req, res, next) {
+  var querySelectNotice = "SELECT notice, content, reg_date FROM notice WHERE id = ? ORDER BY id DESC";
+  db.get().query(querySelectNotice, req.query.id, function (err, rows) {
+
+    res.render('notice/detail', {
+      notice: rows
+    });
+
+  });
 });
 module.exports = router;

@@ -1,0 +1,28 @@
+<% include ../top.ejs %>
+<div class="container">
+    <br>
+    <h1><a href="/notice" class="text-body">공지사항</a></h1>
+    <br>
+    <%
+        notice.forEach(function (el) {%>
+    <div class="card border-light mb-3">
+        <div class="card-header">
+            <%=el.notice%>
+        </div>
+        <div class="card-body">
+            <p class="card-text" style="white-space:pre-line">
+                <%=el.content%>
+            </p>
+
+            <p class="text-muted text-right">
+                <%=el.reg_date.toLocaleDateString("ko-KR")%>
+            </p>
+
+        </div>
+
+    </div>
+    <br>
+    <%});
+    %>
+
+</div>

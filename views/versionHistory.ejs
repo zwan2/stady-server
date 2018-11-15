@@ -1,0 +1,26 @@
+<% include ./top.ejs %>
+
+<div class="container">
+    <h1>Version History</h1>
+    <br>
+    <%
+        versionHistory.forEach(function (el) {%>
+            <div class="card border-light mb-3" >
+                <div class="card-header">
+                    <%=el.version_real%>   
+                </div>
+                <div class="card-body">
+                    <p class="card-text" style="white-space:pre-line">
+                        <%=el.changes%>
+                    </p>
+                    
+                    <p class="text-muted text-right"><%=el.updated_at.toLocaleDateString("ko-KR")%></p>
+                
+                </div>
+                
+            </div>  
+            <br>
+        <%});
+    %>
+
+</div>

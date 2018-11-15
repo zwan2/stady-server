@@ -51,26 +51,20 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
 
                 //유저별 시간 offset 적용
                 //기준시간, offset시간
-                //var baseTime = moment(req.body.endPoint).format("YYYY-MM-DD HH:mm:ss").set({ 'hour': 0, 'minute': 0, 'second': 0, 'millisecond': 0});
-              
-                
-                //time_offset(분) -> offsetHour,offsetMinute(시,분)
+    
                 var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
-                //var nowTime = moment().tz("Asia/Seoul").format('YYYY-MM-DD');
                 var baseTime = moment().format("YYYY-MM-DD 00:00:00");
+
                 var offsetHour = parseInt(rows1[0].time_offset / 60);
                 var offsetMinute = rows1[0].time_offset % 60;             
-                
                 var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
                
 
                 //예외처리(기준 시간보다 작은 경우)
                 if (nowTime <= moment(offsetTime).format("YYYY-MM-DD HH:mm:ss")) {
-                    console.log("전찐:" + offsetTime);
-                    
+                    //console.log("전찐:" + offsetTime);
                     offsetTime = moment(offsetTime).subtract(1, 'days');
-                    console.log("찐:"+offsetTime);
-                    
+                    //console.log("찐:"+offsetTime);
                 }
 
                 offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
@@ -149,6 +143,8 @@ router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
 router.post('/setGoal', isAuthenticated, function (req, res, next) {
     var nowTime = moment().format('YYYY-MM-DD');    
     
+ 
+
     //todayGoal(총합) 구하기
     var todayGoal = 0;
     var subjectGoals = [[]];
@@ -166,11 +162,14 @@ router.post('/setGoal', isAuthenticated, function (req, res, next) {
         if (err) {
             return res.status(400).send(err);
         } else {
-            return res.sendStatus(200);
+            console.log();
+            return res.status(200).send(rows);
         }
     });
-  
 });
+
+
+
 
 // 스톱워치 정지 기능 histories, statistics table 모두 저장
 // REQ: userId, examaddress, subjectId, studyId, startPoint, endPoint, term

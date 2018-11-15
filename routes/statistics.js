@@ -185,6 +185,12 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
     var userId = req.query.userId;
+    var nowDate = moment().tz("Asia/Seoul");
+    /*var result = {
+        rank : 'F',
+        startDate: nowDate,
+        endDate: nowDate
+    }*/
 
     var selectMonthlyTotal = "SELECT SUM(term) AS total, " +
                                     "COUNT(term) AS count_term, " +
@@ -207,10 +213,10 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
             var avgAR = rows1[0].total / rows1[0].goal;
             var avgCC = rows1[0].total / rows1[0].count_term;
             
-            var result = {
+            result = {
                 rank: loadRank(avgT, avgAR, avgCC),
-                startDate: rows2[0].startDate,
-                endDate: rows2[0].endDate
+                startDate: (rows2[0].startDate) ? rows2[0].startDate : nowDate,
+                endDate: (rows2[0].endDate) ? rows2[0].endDate : nowDate
             }
 
             return res.status(200).send(result);
