@@ -50,7 +50,7 @@ router.post('/login',
       userId: req.user.id,
       sessionId: req.sessionID
     }
-    return res.status(200).send(J(jsonSession));
+    return res.status(200).send(jsonSession);
 });
 
 //1.2. 로그아웃
