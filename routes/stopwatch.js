@@ -234,7 +234,11 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                             settings.subjects[i].total = subjects[j].total;
                         }
                     }
-                    settings.subjects[i].goal = subjectGoals[i];
+                    for (var k=0 ; k<subjectGoals.length ; k++) {
+                        if (settings.subjects[i].id == subjectGoals[k].id) {
+                            settings.subjects[i].goal = subjectGoals[k].goal;
+                        }
+                    }
                 }
 
                 return res.status(200).send(settings);
@@ -251,10 +255,28 @@ global.loadHistory = function(userId, examAddress, subjectIds, timeOffset, callb
     getGoal(userId, function(err, todayGoal, subjectGoals) {
         if (err) return callback(err);
 
+        console.log(subjectGoals);
+        
+
+        var goalResult = new Array();
         if (subjectGoals == null) {
-            subjectGoals = new Array();
             for (var i in subjectIds) {
-                subjectGoals[i] = 0;
+                var g = {
+                    id: subjectIds[i],
+                    goal: 0
+                }
+                goalResult[i] = g;
+            }
+        }
+        else {
+            var goal = subjectGoals.split(",");
+            for (var i in goal) {
+                var two = goal[i].split(":");
+                var g = {
+                    id: two[0],
+                    goal: two[1]
+                }
+                goalResult[i] = g;
             }
         }
         
@@ -282,7 +304,7 @@ global.loadHistory = function(userId, examAddress, subjectIds, timeOffset, callb
                 subjects[i] = subject;
             }
 
-            return callback(null, today, subjects, subjectGoals);
+            return callback(null, today, subjects, goalResult);
         });
 
     });
