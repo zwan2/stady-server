@@ -252,11 +252,9 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
 });
 
 global.loadHistory = function(userId, examAddress, subjectIds, timeOffset, callback) {
-    getGoal(userId, function(err, todayGoal, subjectGoals) {
-        if (err) return callback(err);
 
-        console.log(subjectGoals);
-        
+    getGoal(userId, function(err, todayGoal, subjectGoals) {
+        if (err) return callback(err);        
 
         var goalResult = new Array();
         if (subjectGoals == null) {
@@ -279,7 +277,7 @@ global.loadHistory = function(userId, examAddress, subjectIds, timeOffset, callb
                 goalResult[i] = g;
             }
         }
-        
+
         getHistory(userId, examAddress, subjectIds, timeOffset, function(err, subjectIds, subjectTotals) {
             if (err) return callback(err);
 
@@ -318,7 +316,7 @@ global.getGoal = function(userId, callback) {
 
 
         if (err) callback(err);
-        else if (rows[0] == null) {            
+        else if (rows[0] == null) {             
             callback("unknown error...");
         }
         else {
@@ -350,11 +348,19 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
 
     var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
 
+    var backup = subjectIds;
+
     db.get().query(querySelectHistory, [userId, examAddress, offsetTime, nowTime], function (err, rows) {
-        
         if (err) callback(err);
         else if (rows[0] == null) {
-            callback("unknown error...");
+            //There is no history data for today.
+
+            var subjectTotals = new Array();
+            for (var i in backup) {
+                subjectTotals[i] = 0;
+            }
+
+            callback(null, backup, subjectTotals);
         }
         else {
             var subjectIds = new Array();
@@ -365,7 +371,7 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
                 subjectTotals[i] = rows[i].subjectTotal;
             }
             
-            callback(err, subjectIds, subjectTotals);
+            callback(null, subjectIds, subjectTotals);
         }
     });
 }
