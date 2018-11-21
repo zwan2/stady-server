@@ -96,14 +96,6 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     
     var tomorrowTime = moment(req.query.targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
 
-   /*
-    var q1 = "SELECT today_goal FROM user_goals WHERE reg_time < ? ORDER BY reg_time DESC LIMIT 1";
-    db.get().query(q1, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
-        return rows1[0];
-        
-    });
-*/
-
     //SELECT common
     var querySelectHistories = "SELECT SUM(term) AS total, (SELECT today_goal FROM user_goals WHERE reg_time < ? AND user_id = ? ORDER BY reg_time DESC LIMIT 1) AS goal,"
     +"(SELECT subject_ids FROM user_settings WHERE user_id = ?) AS subjectIds, COUNT(term) term_count FROM histories WHERE user_id = ?"
@@ -148,8 +140,8 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                     names: names
                 }
 
-                console.log(rows1[0].total);
-                console.log(rows1[0].goal);
+                //console.log(rows1[0].total);
+                //console.log(rows1[0].goal);
                 
                 var total = rows1[0].total == null ? 0 : rows1[0].total;
                 var goal = rows1[0].goal == null ? 3600 : rows1[0].goal;
@@ -186,11 +178,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
     var userId = req.query.userId;
     var nowDate = moment().tz("Asia/Seoul");
-    /*var result = {
-        rank : 'F',
-        startDate: nowDate,
-        endDate: nowDate
-    }*/
+
 
     var selectMonthlyTotal = "SELECT SUM(term) AS total, " +
                                     "COUNT(term) AS count_term, " +
@@ -213,7 +201,7 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
             var avgAR = rows1[0].total / rows1[0].goal;
             var avgCC = rows1[0].total / rows1[0].count_term;
             
-            result = {
+            var result = {
                 rank: loadRank(avgT, avgAR, avgCC),
                 startDate: (rows2[0].startDate) ? rows2[0].startDate : nowDate,
                 endDate: (rows2[0].endDate) ? rows2[0].endDate : nowDate
@@ -228,20 +216,80 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 
 //기획이 먼저 필요하다
 //현재 테이블로 해결 가능.
+//1. 내 랭킹, 총 유저, 평균 공부시간
 router.get('/loadRanking', isAuthenticated, function (req, res, next) {
-    //SELECT all
-    //var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)" +
-    //                            " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)";
-    var querySelectRanking = "SELECT COUNT(*)+1 AS total_user, SUM(today_total) AS total_time FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) GROUP BY exam_address, user_id";
-    console.log('a');
-    
-    db.get().query(querySelectRanking, [req.query.userId, req.query.userId, req.query.userId], function (err, rows) {
-    //console.log(rows[0].ranking);
-        var result = rows[0];
+    var result;
+    //내 등수 
+    var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)" +
+                            " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)";
+    //총 유저 수
+    var querySelectTotal = "SELECT COUNT(*) AS total_user FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)";
+    //유저 평균
+    var querySelectRankingAll = "SELECT subject_id, study_id, SUM(today_total) AS today_total FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) GROUP BY subject_id, study_id";
+    var querySelectSubject = "SELECT title FROM subjects WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)";
 
-        return res.status(200).send(result);
+    db.get().query(querySelectRanking, [req.query.userId, req.query.userId, req.query.userId], function (err, rows1) {
+        if (err) return res.status(400).send(err);
+        db.get().query(querySelectTotal, req.query.userId, function (err, rows2) {
+            if (err) return res.status(400).send(err);
+            db.get().query(querySelectRankingAll, req.query.userId, function (err, rows3) {
+                if (err) return res.status(400).send(err);
+                db.get().query(querySelectSubject, req.query.userId, function (err, rows4) {
+                    if (err) return res.status(400).send(err);
+                    //result = rows1[0];
+                    console.log(rows1[0]);
+                    console.log(rows2);           
+                    console.log(rows3);
+                    //console.log(rows4);
+                    
+                    
+                    var names = [],
+                        totals = [];
+                    for (var i = 0; i < rows4.length; i++) {
+                        names.push(rows4[i].title);
+                    }
+                    
+                    for (var i = 0; i < rows3.length; i++) {
+                        var terms = [0, 0, 0, 0];
+                        /*
+                        for (var j = 0; j < rows2.length; j++) {
+                            if (subjectIdsArray[i] == rows4[j].subject_id) {
+                                terms[rows4[j].study_id] += rows4[j].today_total;
+                            }
+                        }*/
+                        //console.log(rows3[i].study_id);
+                        if(rows3[i].study_id != undefined) {
+                            terms[rows3[i].study_id] = rows3[i].today_total;
+                            totals.push(terms);
+
+                        }
+                        //var id = rows3[i].study_id;
+                    }
+
+                    var subject = {
+                        totals: totals,
+                        names: names
+                    }
+                    return subject;
+
+                    
+                    result = {
+                        //퍼센트 랭킹(서비스 규모 커지면 도입)
+                        //ranking: rows1[0].ranking / rows2[0].total_user,
+                        ranking: rows1[0].ranking,
+                        totalUser: rows2[0].total_user,
+                        avgT : rows2[0].total_time/rows2[0].total_user
+                    }
+                    return res.status(200).send(result);
+             
+                });
+            });
+        });
     });
 });
+
+router.get('/')
+//2. 상위 5%,10,25의 공부시간, 공부시간 분류
 
 
 module.exports = router;

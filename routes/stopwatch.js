@@ -6,13 +6,12 @@ var moment = require('moment');
 var moment = require('moment-timezone');
 
 
-
-
 /**
  * GET: /loadSettings
  * QUERY: userId, updatedAt
  * RESPOND: 
  */
+
 router.get('/loadSettings', isAuthenticated, function (req, res) {
     loadSettings(req.query.userId, req.query.updatedAt, function(err, code, settings) {
         if (err) return sendError(res, err);
@@ -509,8 +508,6 @@ router.post('/setTotalGoal', isAuthenticated, function (req, res, next) {
 //REQ: userId, subjectGoals
 router.post('/setGoal', isAuthenticated, function (req, res, next) {
     var nowTime = moment().format('YYYY-MM-DD');    
-    
- 
 
     //todayGoal(총합) 구하기
     var todayGoal = 0;
