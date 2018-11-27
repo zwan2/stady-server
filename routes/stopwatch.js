@@ -118,7 +118,8 @@ global.getSettings = function(userId, callback) {
 
     db.get().query(querySelectSettings, userId, function (err, rows) {
         if (err) callback(err);
-        else if (rows[0] == undefined) {
+        else if (rows[0] == undefined || rows[0].exam_address == undefined ||
+            rows[0].subject_ids == undefined || rows[0].time_offset == undefined) {
             callback(null, 401, null, null);
         }
         else {
