@@ -114,7 +114,6 @@ router.get('/notice', function(req, res, next) {
     res.render('notice/index', {
       notice: rows
     });
-
   });
 });
 
@@ -128,4 +127,11 @@ router.get('/notice/detail', function (req, res, next) {
 
   });
 });
+
+
+router.get('/download', function(req, res, next) {
+  res.redirect('https://play.google.com/store/apps/details?id=com.paribus.stady');
+});
+
+
 module.exports = router;
