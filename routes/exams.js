@@ -67,4 +67,57 @@ router.post('/saveCondition', isAuthenticated, function (req, res, next) {
 });
 
 
+//DB 데이터를 모두 보내줌
+//REQ: tableName = jsonArray EX: ["exam_cat0", "exam_cat2", "subjects"]
+router.get('/getDB', function(req, res, next) {
+    var tableName = req.query.tableName;
+    var tableNameObject = JSON.parse(tableName);
+
+    var workFinished = new Array();
+    var totalResult = new Object();
+
+    for (var i in tableNameObject) {
+        workFinished[i] = false;
+
+        getDB(tableNameObject[i], i, function(err, index, result) {
+            if (err) return res.status(400).send(err);
+            else {                
+                totalResult[tableNameObject[index]] = result;
+                workFinished[index] = true;
+                
+                getDBFinished(res, workFinished, totalResult);
+            }
+        });
+    }
+});
+
+global.getDBFinished = function(res, workFinished, result) {
+    var everything;
+
+    for (var j in workFinished) {
+        if (workFinished[j]) {
+            everything = true;
+        }
+        else {
+            everything = false;
+            break;
+        }
+    }
+
+    if (everything) {
+        return res.status(200).send(result);
+    }
+}
+
+global.getDB = function(tableName, index, callback) {
+    var querySelectTable = "SELECT * FROM " + tableName;
+    db.get().query(querySelectTable, function (err, rows) {
+        if (err) callback(err);
+        else {
+            callback(null, index, rows);
+        }
+    });
+}
+
+
 module.exports = router;
