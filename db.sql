@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
   `open_option` tinyint(2) DEFAULT '0',
   `title` varchar(30) NOT NULL,
-  `subtitle` varchar(100) DEFAULT NULL,
+  `content` varchar(200) DEFAULT NULL,
   `color` int(10) DEFAULT '-11708574',
   `emoji` varchar(30) DEFAULT '\uD83D\uDE01',  
   `user_count` tinyint(2) DEFAULT '1',

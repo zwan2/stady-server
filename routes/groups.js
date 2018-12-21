@@ -7,36 +7,50 @@ router.get('/', function (req, res, next) {
     res.send('respond with a resource');
 });
 
-//그룹 리스트 뷰 (가장 높은 id부터 내림차로 로딩함) 현재까지 로딩된 데이터의 개수 + 1을 
-//REQ: startPoint (현재까지 로딩된 데이터의 개수)
-router.get('/fullList', function (req, res, next) {
+// //그룹 리스트 뷰 (가장 높은 id부터 내림차로 로딩함) 현재까지 로딩된 데이터의 개수 + 1을 
+// //REQ: startPoint (현재까지 로딩된 데이터의 개수)
+// router.get('/fullList', function (req, res, next) {
 
-    var querySelectgroup = "SELECT id, exam_id, title, subtitle, user_count, master_user_id FROM group WHERE open_option = 1 ORDER BY id DESC LIMIT " + req.query.startPoint + ", 5;";
+//     var querySelectgroup = "SELECT id, exam_id, title, subtitle, user_count, master_user_id FROM group WHERE open_option = 1 ORDER BY id DESC LIMIT " + req.query.startPoint + ", 5;";
 
-    db.get().query(querySelectgroup, function (err, rows) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
-            return res.status(200).send(JSON.stringify(rows));
-        };
-    });
-});
+//     db.get().query(querySelectgroup, function (err, rows) {
+//         if (err) {
+//             return res.status(400).send(err);
+//         } else {
+//             return res.status(200).send(JSON.stringify(rows));
+//         };
+//     });
+// });
 
 //내 그룹 목록(메인)
 //REQ: userId RES: {"title":"공시","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
-    var querySelectUsers = "SELECT id, title, color, emoji, user_count FROM groups WHERE group_users_ids IN (" + req.query.userId + ")";
-    db.get().query(querySelectUsers, [req.query.userId], function (err, rows) {
+    var querySelectGroups = "SELECT id, title, content, color, emoji, user_count FROM groups WHERE group_users_ids IN (" + req.query.userId + ")";
+    db.get().query(querySelectGroups, [req.query.userId], function (err, rows) {
         if (err) return res.status(400).send(err);
-
         return res.status(200).send(rows);
     });
 });
 
 //그룹 클릭 시 유저들의 상세정보
+//REQ: groupId
 router.get('/getUsersInGroup', function (req, res, next) {
-    var querySelectUsers = "SELECT , title, color, emoji, user_count FROM groups WHERE group_users_ids IN (" + req.query.userId + ")";
+    
+    //1. getGroupUsersIds
+    var querySelectIds = "SELECT group_users_ids FROM groups WHERE id = ?";
 
+    db.get().query(querySelectIds, [req.query.groupId], function (err, rows1) {
+        if (err) return res.status(400).send(err);
+        
+        //2. getSettings
+        var querySelectSettings = "SELECT S.user_id AS id, S.name, S.emoji, S.color, (SELECT today_goal FROM user_goals as G WHERE G.user_id = S.user_id LIMIT 1) AS goal" +
+            " FROM user_settings S WHERE S.user_id IN (" + rows1[0].group_users_ids+")";
+        db.get().query(querySelectSettings, function (err, rows2) {
+            if (err) return res.status(400).send(err);
+            
+            return res.status(200).send(rows2);
+        });
+    });
 });
 
 //그룹 생성

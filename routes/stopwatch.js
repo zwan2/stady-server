@@ -31,7 +31,7 @@ global.loadSettings = function(userId, updatedAt, callback) {
 
         else if (available) {
             //There is update. We need to send a new information.
-            getSettings(userId, function(err, code, name, examAddress, subjectIds, timeOffset) {
+            getSettings(userId, function(err, code, name, color, emoji, examAddress, subjectIds, timeOffset) {
                 if (err) return callback(err);
     
                 if (code) return callback(null, 401);
@@ -62,6 +62,8 @@ global.loadSettings = function(userId, updatedAt, callback) {
                             }
                             var settings = {
                                 name: name,
+                                color: color,
+                                emoji: emoji,
                                 timeOffset: timeOffset,
                                 updatedAt: updatedAt,
                                 exam: exam,
@@ -117,16 +119,17 @@ global.isUpdateAvailable = function(tableName, userId, updatedAt, callback) {
  * @param {Callback to return result of query} callback 
  */
 global.getSettings = function(userId, callback) {
-    var querySelectSettings = "SELECT name, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
+    var querySelectSettings = "SELECT name, color, emoji, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
 
     db.get().query(querySelectSettings, userId, function (err, rows) {
         if (err) callback(err);
+        //값 없는 경우 예외처리
         else if (rows[0] == undefined || rows[0].exam_address == undefined ||
             rows[0].subject_ids == undefined || rows[0].time_offset == undefined) {
             callback(null, 401, null, null);
         }
         else {
-            callback(null, null, rows[0].name, rows[0].exam_address.split('_'), rows[0].subject_ids.split(','), rows[0].time_offset);
+            callback(null, null, rows[0].name, rows[0].color, rows[0].emoji, rows[0].exam_address.split('_'), rows[0].subject_ids.split(','), rows[0].time_offset);
         }
     });
 }
@@ -403,128 +406,128 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
 
-router.get('/loadMain', isAuthenticated, function (req, res, next) {
+// router.get('/loadMain', isAuthenticated, function (req, res, next) {
     
-    //[1] loadSettings
-    var examAddress, subjectIds, examTitle;
-    var querySelectSettings = "SELECT name, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
-    var querySelectExamCat = "(SELECT title FROM exam_cat0 WHERE id = ?) UNION (SELECT title FROM exam_cat1 WHERE id = ?) UNION (SELECT title FROM exam_cat2 WHERE id = ?)"
-    //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
-    db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
-        if (err) return res.status(400).send(err);
+//     //[1] loadSettings
+//     var examAddress, subjectIds, examTitle;
+//     var querySelectSettings = "SELECT name, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
+//     var querySelectExamCat = "(SELECT title FROM exam_cat0 WHERE id = ?) UNION (SELECT title FROM exam_cat1 WHERE id = ?) UNION (SELECT title FROM exam_cat2 WHERE id = ?)"
+//     //user_settings의 exam_address와 subject_ids로 id->이름 불러옴
+//     db.get().query(querySelectSettings, req.query.userId, function (err, rows1) {
+//         if (err) return res.status(400).send(err);
         
-        //반드시 rows1[0].exam_address으로 검사
-        if(rows1[0] == undefined || rows1[0].exam_address == undefined) {            
-            return res.sendStatus(401);
-        } 
-        else {
-            examAddress = rows1[0].exam_address.split('_');
-            subjectIds = rows1[0].subject_ids;
-        }
+//         //반드시 rows1[0].exam_address으로 검사
+//         if(rows1[0] == undefined || rows1[0].exam_address == undefined) {            
+//             return res.sendStatus(401);
+//         } 
+//         else {
+//             examAddress = rows1[0].exam_address.split('_');
+//             subjectIds = rows1[0].subject_ids;
+//         }
 
-        db.get().query(querySelectExamCat, [examAddress[0], examAddress[1], examAddress[2]], function (err, rows2) {
+//         db.get().query(querySelectExamCat, [examAddress[0], examAddress[1], examAddress[2]], function (err, rows2) {
 
-            //공무원
-            if(examAddress[0] == 1) {
-                examTitle = rows2[1].title + " · " + rows2[2].title;
-            } 
-            //이외
-            else {
-                examTitle = rows2[1].title;
-            }
+//             //공무원
+//             if(examAddress[0] == 1) {
+//                 examTitle = rows2[1].title + " · " + rows2[2].title;
+//             } 
+//             //이외
+//             else {
+//                 examTitle = rows2[1].title;
+//             }
             
-            var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
-            db.get().query(querySelectSubjects, function (err, rows3) {
-                if (err) return res.status(400).send(err);
+//             var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + rows1[0].subject_ids + ")";
+//             db.get().query(querySelectSubjects, function (err, rows3) {
+//                 if (err) return res.status(400).send(err);
 
 
-                //유저별 시간 offset 적용
-                //기준시간, offset시간
+//                 //유저별 시간 offset 적용
+//                 //기준시간, offset시간
     
-                var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
-                var baseTime = moment().format("YYYY-MM-DD 00:00:00");
+//                 var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
+//                 var baseTime = moment().format("YYYY-MM-DD 00:00:00");
 
-                var offsetHour = parseInt(rows1[0].time_offset / 60);
-                var offsetMinute = rows1[0].time_offset % 60;             
-                var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
+//                 var offsetHour = parseInt(rows1[0].time_offset / 60);
+//                 var offsetMinute = rows1[0].time_offset % 60;             
+//                 var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
                
 
-                //예외처리(기준 시간보다 작은 경우)
-                if (nowTime <= moment(offsetTime).format("YYYY-MM-DD HH:mm:ss")) {
-                    //console.log("전찐:" + offsetTime);
-                    offsetTime = moment(offsetTime).subtract(1, 'days');
-                    //console.log("찐:"+offsetTime);
-                }
+//                 //예외처리(기준 시간보다 작은 경우)
+//                 if (nowTime <= moment(offsetTime).format("YYYY-MM-DD HH:mm:ss")) {
+//                     //console.log("전찐:" + offsetTime);
+//                     offsetTime = moment(offsetTime).subtract(1, 'days');
+//                     //console.log("찐:"+offsetTime);
+//                 }
 
-                offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
+//                 offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
             
-                console.log(nowTime);
+//                 console.log(nowTime);
 
-                console.log(baseTime);
-                console.log(offsetTime);
-                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
-                var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
+//                 console.log(baseTime);
+//                 console.log(offsetTime);
+//                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
+//                 var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
                 
-                //[2] LoadHistory
-                db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
-                    if (err) return res.status(400).send(err);
+//                 //[2] LoadHistory
+//                 db.get().query(querySelectGoals, [req.query.userId, req.query.userId], function (err, rows4) {
+//                     if (err) return res.status(400).send(err);
                     
-                    //goal 없는 아이디 접근 가능 코드 (앞으로의 유저는 문제 없음)
-                    if (rows4[0] == undefined) {
-                        rows4[0] = {
-                            todayGoal : 3600,
-                            subject_goals : ""
-                        }
-                    }
+//                     //goal 없는 아이디 접근 가능 코드 (앞으로의 유저는 문제 없음)
+//                     if (rows4[0] == undefined) {
+//                         rows4[0] = {
+//                             todayGoal : 3600,
+//                             subject_goals : ""
+//                         }
+//                     }
                     
-                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
-                    db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows5) {
-                        if (err) return res.status(400).send(err);
-                        var todayTotal = 0;
-                        for (var i in rows5) {
-                            todayTotal = todayTotal + rows5[i].subjectTotal;
-                        }
+//                 var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
+//                     db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows5) {
+//                         if (err) return res.status(400).send(err);
+//                         var todayTotal = 0;
+//                         for (var i in rows5) {
+//                             todayTotal = todayTotal + rows5[i].subjectTotal;
+//                         }
                     
-                        var querySelectDBUpdateAt = "SELECT MAX(UPDATE_TIME) AS dbUpdatedAt " +
-                                                "FROM   information_schema.tables " +
-                                                "WHERE  TABLE_SCHEMA = 'STADY' " +
-                                                "AND (TABLE_NAME = 'subjects' " +
-                                                "OR TABLE_NAME = 'exam_cat0' " +
-                                                "OR TABLE_NAME = 'exam_cat1' " +
-                                                "OR TABLE_NAME = 'exam_cat2')";
-                        db.get().query(querySelectDBUpdateAt, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows6) {
-                            if (err) return res.status(400).send(err);
+//                         var querySelectDBUpdateAt = "SELECT MAX(UPDATE_TIME) AS dbUpdatedAt " +
+//                                                 "FROM   information_schema.tables " +
+//                                                 "WHERE  TABLE_SCHEMA = 'STADY' " +
+//                                                 "AND (TABLE_NAME = 'subjects' " +
+//                                                 "OR TABLE_NAME = 'exam_cat0' " +
+//                                                 "OR TABLE_NAME = 'exam_cat1' " +
+//                                                 "OR TABLE_NAME = 'exam_cat2')";
+//                         db.get().query(querySelectDBUpdateAt, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows6) {
+//                             if (err) return res.status(400).send(err);
                         
-                            var loadSettingsResult = {
-                                "settings": {
-                                    "name": rows1[0].name,
-                                    "examTitle": examTitle,
-                                    "subjectTitles": rows3,
-                                    "examAddress": rows1[0].exam_address,
-                                    "subjectIds": rows1[0].subject_ids,
-                                    "timeOffset": rows1[0].time_offset,
-                                    "dbUpdatedAt": rows5[0].dbUpdatedAt
-                                },
-                                "history": {
-                                    "goals" : rows4[0],
-                                    "todayTotal": todayTotal, 
-                                    "subjectHistory": rows5
-                                }
-                            }
+//                             var loadSettingsResult = {
+//                                 "settings": {
+//                                     "name": rows1[0].name,
+//                                     "examTitle": examTitle,
+//                                     "subjectTitles": rows3,
+//                                     "examAddress": rows1[0].exam_address,
+//                                     "subjectIds": rows1[0].subject_ids,
+//                                     "timeOffset": rows1[0].time_offset,
+//                                     "dbUpdatedAt": rows5[0].dbUpdatedAt
+//                                 },
+//                                 "history": {
+//                                     "goals" : rows4[0],
+//                                     "todayTotal": todayTotal, 
+//                                     "subjectHistory": rows5
+//                                 }
+//                             }
 
-                            return res.status(200).send(loadSettingsResult);
-                        });
+//                             return res.status(200).send(loadSettingsResult);
+//                         });
                     
-                    });
+//                     });
 
 
-                });
+//                 });
 
-            });
-        });
-    });
+//             });
+//         });
+//     });
     
-});
+// });
 
 //REQ: userId, totalGoal
 // 임시 골 설정 (삭제 예정)

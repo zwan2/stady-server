@@ -67,7 +67,7 @@ app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/exams', require('./routes/exams'));
 app.use('/stopwatch', require('./routes/stopwatch'));
-app.use('/group', require('./routes/group'));
+app.use('/groups', require('./routes/groups'));
 app.use('/statistics', require('./routes/statistics'));
 require('./routes/updateTime');
 
@@ -89,29 +89,29 @@ app.use(function(err, req, res, next) {
 });
 
 
-//먼저 join 후 (start, stop)이 반복됨.
-io.sockets.on('connection', function (socket) {
+// //먼저 join 후 (start, stop)이 반복됨.
+// io.sockets.on('connection', function (socket) {
 
-  //1. JOIN data.roomname
-  socket.on('join', function (data) {
-    console.log(data);
-    // socket join 을 합니다.
-    socket.join(data.romname);
-    //구성원에게 알림.
-    io.sockets.in(data.roomname).emit('join', data.userid);
-  });
+//   //1. JOIN data.roomname
+//   socket.on('join', function (data) {
+//     console.log(data);
+//     // socket join 을 합니다.
+//     socket.join(data.romname);
+//     //구성원에게 알림.
+//     io.sockets.in(data.roomname).emit('join', data.userid);
+//   });
 
-  // 2. START OR STOP MESSAGE EMIT
-  socket.on('message', function (message) { 
-    io.sockets.in(message.roomname).emit('message', message.message);
-  });
+//   // 2. START OR STOP MESSAGE EMIT
+//   socket.on('message', function (message) { 
+//     io.sockets.in(message.roomname).emit('message', message.message);
+//   });
 
 
-  socket.on('leave', function (data) {
-    socket.leave(data.roomname);
-    io.sockets.in(data.roomname).emit('user left', data.userid);
-  });
-});
+//   socket.on('leave', function (data) {
+//     socket.leave(data.roomname);
+//     io.sockets.in(data.roomname).emit('user left', data.userid);
+//   });
+// });
 
 
 app.listen(3000, function () {
