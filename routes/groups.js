@@ -8,11 +8,10 @@ router.get('/', function (req, res, next) {
 });
 
 //내 그룹 목록(메인)
-//REQ: userId RES: {"title":"공시","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
+//REQ: userId RES: {"title":"공시반","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
-
-    var querySelectGroups = "SELECT id, title, content, color, emoji, user_count FROM groups WHERE group_users_ids IN (" + req.query.userId + ")";
-    db.get().query(querySelectGroups, [req.query.userId], function (err, rows) {
+    var querySelectGroups = "SELECT id, title, content, color, emoji, user_count FROM groups WHERE FIND_IN_SET(? , group_users_ids)";
+    db.get().query(querySelectGroups, req.query.userId, function (err, rows) {
         if (err) return res.status(400).send(err);
         return res.status(200).send(rows);
     });
