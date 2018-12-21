@@ -39,35 +39,38 @@ global.loadSettings = function(userId, updatedAt, callback) {
                 loadTitles(examAddress, function(err, examTitle) {
                     if (err) return callback(err);
 
-                    loadSubjectTitles(subjectIds, function(err, subjectTitles) {
-                        if (err) return callback(err);
-
-
-                        if (subjectIds.length != subjectTitles.length) {
-                            return callback("Count of subject ids and titles are different. Weird!");
-                        }
-
-                        var exam = {
-                            address: examAddress,
-                            title: examTitle
-                        }
-
-                        var subjects = new Array();
-                        for (var i=0 ; i<subjectIds.length ; i++) {
-                            subjects[i] = {
-                                id: subjectIds[i],
-                                title: subjectTitles[i]
+                    getDBUpdatedAt(function(err, dbUpdatedAt) {
+                        loadSubjectTitles(subjectIds, function(err, subjectTitles) {
+                            if (err) return callback(err);
+    
+    
+                            if (subjectIds.length != subjectTitles.length) {
+                                return callback("Count of subject ids and titles are different. Weird!");
                             }
-                        }
-                        var settings = {
-                            name: name,
-                            timeOffset: timeOffset,
-                            updatedAt: updatedAt,
-                            exam: exam,
-                            subjects: subjects
-                        }
-
-                        return callback(null, null, settings);
+    
+                            var exam = {
+                                address: examAddress,
+                                title: examTitle
+                            }
+    
+                            var subjects = new Array();
+                            for (var i=0 ; i<subjectIds.length ; i++) {
+                                subjects[i] = {
+                                    id: subjectIds[i],
+                                    title: subjectTitles[i]
+                                }
+                            }
+                            var settings = {
+                                name: name,
+                                timeOffset: timeOffset,
+                                updatedAt: updatedAt,
+                                exam: exam,
+                                subjects: subjects,
+                                dbUpdatedAt: dbUpdatedAt
+                            }
+    
+                            return callback(null, null, settings);
+                        });
                     });
                 });
             });
@@ -118,7 +121,8 @@ global.getSettings = function(userId, callback) {
 
     db.get().query(querySelectSettings, userId, function (err, rows) {
         if (err) callback(err);
-        else if (rows[0] == undefined) {
+        else if (rows[0] == undefined || rows[0].exam_address == undefined ||
+            rows[0].subject_ids == undefined || rows[0].time_offset == undefined) {
             callback(null, 401, null, null);
         }
         else {
@@ -171,6 +175,25 @@ global.loadSubjectTitles = function(subjectIds, callback) {
             }
 
             callback(null, titles);
+        }
+    });
+}
+
+global.getDBUpdatedAt = function(callback) {
+    var querySelectDBUpdateAt = "SELECT UPDATE_TIME AS updatedAt " +
+                                "FROM information_schema.tables " +
+                                "WHERE TABLE_SCHEMA = 'STADY' " +
+                                "AND (TABLE_NAME = 'exam_cat0' " +
+                                "OR TABLE_NAME = 'exam_cat1' " +
+                                "OR TABLE_NAME = 'exam_cat2' " +
+                                "OR TABLE_NAME = 'subjects')";
+    db.get().query(querySelectDBUpdateAt, function (err, rows) {
+        if (err) callback(err);
+        else {
+            for (var i in rows) {
+                rows[i] = moment(rows[i].updatedAt).format('YYYY-MM-DD HH:mm:ss');
+            }
+            callback(null, rows);
         }
     });
 }
@@ -454,31 +477,44 @@ router.get('/loadMain', isAuthenticated, function (req, res, next) {
                         }
                     }
                     
+                var querySelectGoals = "SELECT today_goal AS todayGoal, subject_goals AS subjectGoals FROM user_goals WHERE user_id = ? ORDER BY id DESC LIMIT 1";
                     db.get().query(querySelectHistory, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows5) {
                         if (err) return res.status(400).send(err);
                         var todayTotal = 0;
                         for (var i in rows5) {
                             todayTotal = todayTotal + rows5[i].subjectTotal;
                         }
+                    
+                        var querySelectDBUpdateAt = "SELECT MAX(UPDATE_TIME) AS dbUpdatedAt " +
+                                                "FROM   information_schema.tables " +
+                                                "WHERE  TABLE_SCHEMA = 'STADY' " +
+                                                "AND (TABLE_NAME = 'subjects' " +
+                                                "OR TABLE_NAME = 'exam_cat0' " +
+                                                "OR TABLE_NAME = 'exam_cat1' " +
+                                                "OR TABLE_NAME = 'exam_cat2')";
+                        db.get().query(querySelectDBUpdateAt, [req.query.userId, rows1[0].exam_address, offsetTime, nowTime], function (err, rows6) {
+                            if (err) return res.status(400).send(err);
                         
-                        var loadSettingsResult = {
-                            "settings": {
-                                "name": rows1[0].name,
-                                "examTitle": examTitle,
-                                "subjectTitles": rows3,
-                                "examAddress": rows1[0].exam_address,
-                                "subjectIds": rows1[0].subject_ids,
-                                "timeOffset": rows1[0].time_offset
-                            },
-                            "history": {
-                                "goals" : rows4[0],
-                                "todayTotal": todayTotal, 
-                                "subjectHistory": rows5
+                            var loadSettingsResult = {
+                                "settings": {
+                                    "name": rows1[0].name,
+                                    "examTitle": examTitle,
+                                    "subjectTitles": rows3,
+                                    "examAddress": rows1[0].exam_address,
+                                    "subjectIds": rows1[0].subject_ids,
+                                    "timeOffset": rows1[0].time_offset,
+                                    "dbUpdatedAt": rows5[0].dbUpdatedAt
+                                },
+                                "history": {
+                                    "goals" : rows4[0],
+                                    "todayTotal": todayTotal, 
+                                    "subjectHistory": rows5
+                                }
                             }
-                        }
 
-                        return res.status(200).send(loadSettingsResult);
-
+                            return res.status(200).send(loadSettingsResult);
+                        });
+                    
                     });
 
 
