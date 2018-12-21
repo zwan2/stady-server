@@ -7,24 +7,10 @@ router.get('/', function (req, res, next) {
     res.send('respond with a resource');
 });
 
-// //그룹 리스트 뷰 (가장 높은 id부터 내림차로 로딩함) 현재까지 로딩된 데이터의 개수 + 1을 
-// //REQ: startPoint (현재까지 로딩된 데이터의 개수)
-// router.get('/fullList', function (req, res, next) {
-
-//     var querySelectgroup = "SELECT id, exam_id, title, subtitle, user_count, master_user_id FROM group WHERE open_option = 1 ORDER BY id DESC LIMIT " + req.query.startPoint + ", 5;";
-
-//     db.get().query(querySelectgroup, function (err, rows) {
-//         if (err) {
-//             return res.status(400).send(err);
-//         } else {
-//             return res.status(200).send(JSON.stringify(rows));
-//         };
-//     });
-// });
-
 //내 그룹 목록(메인)
 //REQ: userId RES: {"title":"공시","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
+
     var querySelectGroups = "SELECT id, title, content, color, emoji, user_count FROM groups WHERE group_users_ids IN (" + req.query.userId + ")";
     db.get().query(querySelectGroups, [req.query.userId], function (err, rows) {
         if (err) return res.status(400).send(err);

@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS `STADY` /*!40100 DEFAULT CHARACTER SET utf8 */;
+CREATE DATABASE IF NOT EXISTS `STADY` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 USE `STADY`;
 
 CREATE TABLE IF NOT EXISTS `bug_report` (
@@ -8,27 +8,27 @@ CREATE TABLE IF NOT EXISTS `bug_report` (
   `version` varchar(50) DEFAULT NULL,
   `user_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `exam_cat0` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
   `title` varchar(40) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `exam_cat1` (
   `id` int(8) NOT NULL,
   `parent_id` int(8) NOT NULL,
   `title` varchar(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `exam_cat2` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
   `parent_id` int(8) DEFAULT NULL,
   `title` varchar(20) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=122 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `groups` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `master_user_id` int(8) NOT NULL,
   `group_users_ids` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `histories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `histories` (
   `end_point` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `term` int(8) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=841 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=841 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `landing` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `landing` (
   `version_real` varchar(50) NOT NULL,
   `changes` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `notice` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `notice` (
   `notice` text,
   `content` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `statistics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -85,14 +85,14 @@ CREATE TABLE IF NOT EXISTS `statistics` (
   UNIQUE KEY `user_id_2` (`user_id`,`exam_address`,`subject_id`,`study_id`,`base_date`),
   UNIQUE KEY `user_id_3` (`user_id`,`exam_address`,`subject_id`,`study_id`,`base_date`),
   UNIQUE KEY `user_id_4` (`user_id`,`exam_address`,`subject_id`,`study_id`,`base_date`)
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `subjects` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
   `exam_address` char(13) NOT NULL,
   `title` varchar(40) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=996 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=996 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `user_accounts` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `user_accounts` (
   `session_id` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `ux_account_id` (`account_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=174 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=174 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `user_goals` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `user_goals` (
   UNIQUE KEY `user_id_7` (`user_id`,`reg_time`),
   UNIQUE KEY `user_id_8` (`user_id`,`reg_time`),
   UNIQUE KEY `user_id_9` (`user_id`,`reg_time`)
-) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `user_settings` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
@@ -135,4 +135,4 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
   `time_offset` int(6) DEFAULT '0',
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8mb4;
