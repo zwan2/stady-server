@@ -32,11 +32,12 @@ CREATE TABLE IF NOT EXISTS `exam_cat2` (
 
 CREATE TABLE IF NOT EXISTS `groups` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
-  `exam_id` int(3) NOT NULL,
   `open_option` tinyint(2) DEFAULT '0',
   `title` varchar(30) NOT NULL,
   `subtitle` varchar(100) DEFAULT NULL,
-  `count_users` tinyint(2) DEFAULT '1',
+  `color` int(10) DEFAULT '-11708574',
+  `emoji` varchar(30) DEFAULT '\uD83D\uDE01',  
+  `user_count` tinyint(2) DEFAULT '1',
   `master_user_id` int(8) NOT NULL,
   `group_users_ids` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -70,13 +71,6 @@ CREATE TABLE IF NOT EXISTS `notice` (
   `content` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS `stady` (
-  `id` int(11) NOT NULL,
-  `cat2` text,
-  `cat3` text,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `statistics` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -130,12 +124,14 @@ CREATE TABLE IF NOT EXISTS `user_goals` (
 CREATE TABLE IF NOT EXISTS `user_settings` (
   `id` int(8) NOT NULL AUTO_INCREMENT,
   `user_id` int(8) NOT NULL,
-  `name` varchar(20) NOT NULL,
-  `gender` tinyint(1) NOT NULL DEFAULT '0',
-  `birth_date` date DEFAULT NULL,
   `exam_address` varchar(13) DEFAULT NULL,
   `subject_ids` varchar(256) DEFAULT NULL,
   `group_ids` varchar(255) DEFAULT NULL,
+  `name` varchar(20) NOT NULL,
+  `gender` tinyint(1) NOT NULL DEFAULT '0',
+  `birth_date` date DEFAULT NULL,
+  `color` int(10) DEFAULT '-11708574',
+  `emoji` varchar(30) DEFAULT '\uD83D\uDE01', 
   `time_offset` int(6) DEFAULT '0',
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

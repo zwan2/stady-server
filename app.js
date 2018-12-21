@@ -67,7 +67,7 @@ app.use('/', require('./routes/index'));
 app.use('/users', require('./routes/users'));
 app.use('/exams', require('./routes/exams'));
 app.use('/stopwatch', require('./routes/stopwatch'));
-app.use('/groups', require('./routes/groups'));
+app.use('/group', require('./routes/group'));
 app.use('/statistics', require('./routes/statistics'));
 require('./routes/updateTime');
 
