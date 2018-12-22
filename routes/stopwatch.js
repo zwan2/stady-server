@@ -353,8 +353,8 @@ global.getGoal = function(userId, callback) {
 global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callback) {
     //유저별 시간 offset 적용
     //기준시간, offset시간
-    var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
-    var nowTime = moment("2018-12-22 01:00:26", "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+    //var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
+    var nowTime = moment("2018-12-22 02:00:26", "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
     var baseTime = moment().format("YYYY-MM-DD 00:00:00");
     //var baseTime = moment("2018-12-21 23:00:26").format("YYYY-MM-DD 00:00:00");
     
@@ -377,6 +377,7 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
     console.log("tO" + timeOffset);
     console.log("nT" + nowTime);
     console.log("bT" + baseTime);
+    console.log("oT" + baseTime);
 
     var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
 
