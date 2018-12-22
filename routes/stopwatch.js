@@ -354,7 +354,7 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
     //유저별 시간 offset 적용
     //기준시간, offset시간
     var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
-    //var nowTime = moment("2018-12-21 23:00:26", "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+    var nowTime = moment("2018-12-21 23:00:26", "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
     var baseTime = moment().format("YYYY-MM-DD 00:00:00");
     //var baseTime = moment("2018-12-21 23:00:26").format("YYYY-MM-DD 00:00:00");
     
