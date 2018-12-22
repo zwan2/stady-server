@@ -19,7 +19,7 @@ router.get('/getMyGroups', function (req, res, next) {
 
 //그룹 클릭 시 유저들의 상세정보
 //REQ: groupId
-router.get('/getUsersInGroup', function (req, res, next) {
+router.get('/getUsers', function (req, res, next) {
     
     //1. getGroupUsersIds
     var querySelectIds = "SELECT user_ids FROM groups WHERE id = ?";
@@ -69,11 +69,16 @@ router.post('/create', function (req, res, next) {
 
 
 //그룹 검색
-//REQ: searchWord, startPoint
+//REQ: searchWord, startPoint 최초: 0
 router.get('/search', function (req, res, next) {
-    console.log(req.query.searchWord);
+    //임시 쿼리
+    var searchWord = "";
+    searchWord = searchWord.concat("'%", req.query.searchWord, "%'");
+    console.log(searchWord);
     
-    var querySelectGroup = "SELECT title, content FROM groups WHERE match(title, content) against(?)";
+    var querySelectGroup = "SELECT id, title, content, open_option, color, emoji, user_count AS userCount FROM groups WHERE title LIKE " + searchWord + " LIMIT " + req.query.startPoint + ", 20";
+ 
+    //var querySelectGroup = "SELECT title, content FROM groups WHERE MATCH(title, content) AGAINST (?)";
 
     db.get().query(querySelectGroup, [req.query.searchWord], function (err, rows) {
         if (err) {
