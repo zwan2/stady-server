@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `emoji` varchar(30) DEFAULT '\uD83D\uDE01',  
   `user_count` tinyint(2) DEFAULT '1',
   `master_user_id` int(8) NOT NULL,
-  `group_users_ids` varchar(255) DEFAULT NULL,
+  `user_ids` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
