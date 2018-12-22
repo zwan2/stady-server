@@ -38,6 +38,31 @@ router.get('/getUsers', function (req, res, next) {
     });
 });
 
+
+//그룹 이름 중복검사
+//REQ: name
+router.get('/checkDuplicate/name', isAuthenticated, function (req, res, next) {
+    var name = req.query.name;
+  
+    if (name == null) {
+      return res.sendStatus(400);
+    }
+  
+    var sqlSelectName = "SELECT COUNT(*) AS count FROM groups WHERE title = ? LIMIT 1;";
+    db.get().query(sqlSelectName, name, function (err, rows) {
+      if (err) return sendError(res, err);
+  
+      if (rows[0].count != 0) {
+        //중복 (재설정 필요)
+        return res.status(200).send('Duplicated');
+      }
+      else {
+        //중복X
+        return res.sendStatus(200);
+      }
+    });
+  });
+
 //그룹 생성
 //REQ: title, content, openOption, color, emoji, userId
 router.post('/create', function (req, res, next) {
