@@ -353,14 +353,17 @@ global.getGoal = function(userId, callback) {
 global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callback) {
     //유저별 시간 offset 적용
     //기준시간, offset시간
-
     var nowTime = moment().tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss");
+    //var nowTime = moment("2018-12-21 23:00:26", "YYYY-MM-DD HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
     var baseTime = moment().format("YYYY-MM-DD 00:00:00");
-
+    //var baseTime = moment("2018-12-21 23:00:26").format("YYYY-MM-DD 00:00:00");
+    
+    //유저 offset(분단위)
     var offsetHour = parseInt(timeOffset / 60);
     var offsetMinute = timeOffset % 60;             
     var offsetTime = moment(baseTime).set({'hour': offsetHour, 'minute': offsetMinute});
    
+
 
     //예외처리(기준 시간보다 작은 경우)
     if (nowTime <= moment(offsetTime).format("YYYY-MM-DD HH:mm:ss")) {
@@ -370,6 +373,10 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
     }
 
     offsetTime = moment(offsetTime).format("YYYY-MM-DD HH:mm:ss");
+
+    console.log("tO" + timeOffset);
+    console.log("nT" + nowTime);
+    console.log("bT" + baseTime);
 
     var querySelectHistory = "SELECT subject_id AS subjectId, SUM(term) AS subjectTotal FROM histories WHERE user_id = ? AND exam_address = ? AND subject_id IN (" + subjectIds + ") AND end_point >= ? AND end_point <= ? GROUP BY subject_id";
 
@@ -405,9 +412,7 @@ global.getHistory = function(userId, examAddress, subjectIds, timeOffset, callba
 
 //REQ: userId RES: JSON
 //메인화면 데이터 로딩 (1. loadSettings, 2. loadHistory)
-
 // router.get('/loadMain', isAuthenticated, function (req, res, next) {
-    
 //     //[1] loadSettings
 //     var examAddress, subjectIds, examTitle;
 //     var querySelectSettings = "SELECT name, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";

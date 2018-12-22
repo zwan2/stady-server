@@ -11,7 +11,7 @@ router.get('/', function (req, res, next) {
 //REQ: userId RES: {"title":"공시반","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
     var querySelectGroups = "SELECT id, title, content, color, emoji, user_count FROM groups WHERE FIND_IN_SET(? , group_users_ids)";
-    db.get().query(querySelectGroups, req.query.userId, function (err, rows) {
+    db.get().query(querySelectGroups, req.query.userId, function (err, rows) {  
         if (err) return res.status(400).send(err);
         return res.status(200).send(rows);
     });
