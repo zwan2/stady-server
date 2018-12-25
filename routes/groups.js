@@ -10,6 +10,8 @@ router.get('/', function (req, res, next) {
 //내 그룹 목록(메인)
 //REQ: userId RES: {"title":"공시반","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
+    //var querySelectGroups = "SELECT id, title, content, color, emoji, user_count AS userCount FROM groups" 
+    //                        + " WHERE id IN (SELECT group_ids FROM user_settings WHERE user_id = ?)";
     var querySelectGroups = "SELECT id, title, content, color, emoji, user_count AS userCount FROM groups WHERE FIND_IN_SET(? , user_ids)";
     db.get().query(querySelectGroups, req.query.userId, function (err, rows) {  
         if (err) return res.status(400).send(err);
@@ -61,19 +63,20 @@ router.get('/checkDuplicate/name', isAuthenticated, function (req, res, next) {
         return res.sendStatus(200);
       }
     });
-  });
+});
 
 //그룹 생성
 //REQ: title, content, openOption, color, emoji, userId
 router.post('/create', function (req, res, next) {
     var queryInsertGroup = "INSERT INTO groups (title, content, open_option, color, emoji, master_user_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?)";
-
+    var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
     db.get().query(queryInsertGroup, [req.body.title, req.body.content, req.body.openOption, req.body.color, req.body.emoji, req.body.userId, req.body.userId], function (err, rows) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
+        if (err) return res.status(400).send(err);
+        db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
+            if (err) return res.status(400).send(err);
+
             return res.sendStatus(200);
-        };
+        });
     });
 });
 
@@ -116,19 +119,41 @@ router.get('/search', function (req, res, next) {
 
 
 //그룹 가입
-//REQ: userId, groupId
+//REQ: userId, groupId, password(default: 0)
 router.post('/join', function(req, res, next) {
-    var queryUpdateUsers = "UPDATE users SET group_ids = CONCAT(group_ids, ?) WHERE id = ?";
-    var queryUpdategroup = "UPDATE group SET user_ids = CONCAT(user_ids, ?), user_count = user_count + 1 WHERE id = ? ";
-    db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
-        db.get().query(queryUpdategroup,["," + req.body.userId, req.body.groupId], function (err, rows) {
-            if (err) {
-                return res.status(400).send(err);
-            } else {
-                return res.sendStatus(200);
-            }
-        });
+    
+    var querySelectGroups = "SELECT COUNT(*) AS count FROM groups WHERE id = ? AND group_pw = ? AND IF(FIND_IN_SET(? , user_ids), 'T', 'F') = 'F' LIMIT 1";
+    var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
+    var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?), user_count = user_count + 1 WHERE id = ? ";
+    
+    //유효 검사 (그룹 id, pw 일치하는 경우 AND 그룹 가입하지 않은 유저인 경우)
+    db.get().query(querySelectGroups, [req.body.groupId, req.body.password, req.body.userId], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        console.log(rows[0].count);
+        
+        //유효한 가입인 경우
+        if (rows[0].count == 1) {
+            db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
+                if (err) return res.status(400).send(err);
+                //console.log(rows);
+                
+                db.get().query(queryUpdategroups, ["," + req.body.userId, req.body.groupId], function (err, rows) {
+                    if (err) return res.status(400).send(err);
+                    return res.sendStatus(200);
+                });
+            });
+        } 
+        //유효하지 않은 가입인 경우
+        else {
+            return res.sendStatus(401);
+        }
+   
     });
+});
+
+//REQ: userId, groupId
+router.post('/withdrawal', function (req, res, next) {
+    
 });
 
 module.exports = router;

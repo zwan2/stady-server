@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS `groups` (
   `user_count` tinyint(2) DEFAULT '1',
   `master_user_id` int(8) NOT NULL,
   `user_ids` varchar(255) DEFAULT NULL,
+  `password` varchar(44) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
