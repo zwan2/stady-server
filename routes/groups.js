@@ -8,13 +8,19 @@ router.get('/', function (req, res, next) {
 });
 
 //내 그룹 목록(메인)
-//REQ: userId RES: {"title":"공시반","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
+//REQ: userId
+//RES: {"title":"공시반","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
-    //var querySelectGroups = "SELECT id, title, content, color, emoji, user_count AS userCount FROM groups" 
-    //                        + " WHERE id IN (SELECT group_ids FROM user_settings WHERE user_id = ?)";
-    var querySelectGroups = "SELECT id, title, content, color, emoji, user_count AS userCount FROM groups WHERE FIND_IN_SET(? , user_ids)";
+    var querySelectGroups = "SELECT id, title, content, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE FIND_IN_SET(? , user_ids)";
     db.get().query(querySelectGroups, req.query.userId, function (err, rows) {  
         if (err) return res.status(400).send(err);
+
+        //Count the number of users in each group.
+        for (var i in rows) {
+            rows[i].userCount = getUserCount(rows[i].userIds);
+            delete rows[i].userIds;
+        }
+        
         return res.status(200).send(rows);
     });
 });
@@ -22,16 +28,19 @@ router.get('/getMyGroups', function (req, res, next) {
 //그룹 클릭 시 유저들의 상세정보
 //REQ: groupId
 router.get('/getUsers', function (req, res, next) {
-    
-    //1. getGroupUsersIds
-    var querySelectIds = "SELECT user_ids FROM groups WHERE id = ?";
+    //REQ
+    const groupId = req.query.groupId;
 
-    db.get().query(querySelectIds, [req.query.groupId], function (err, rows1) {
+    //1. Find userIds corresponding to groupId
+    var querySelectIds = "SELECT user_ids AS userIds FROM groups WHERE id = ?";
+    db.get().query(querySelectIds, [groupId], function (err, rows1) {
         if (err) return res.status(400).send(err);
+
+        const userIds = rows1[0].userIds;
         
-        //2. getSettings
+        //2. Get detail user information of the group
         var querySelectSettings = "SELECT S.user_id AS id, S.name, S.emoji, S.color, (SELECT today_goal FROM user_goals as G WHERE G.user_id = S.user_id ORDER BY id DESC LIMIT 1) AS goal" +
-            " FROM user_settings S WHERE S.user_id IN (" + rows1[0].user_ids+")";
+            " FROM user_settings S WHERE S.user_id IN (" + userIds +")";
         db.get().query(querySelectSettings, function (err, rows2) {
             if (err) return res.status(400).send(err);
             
@@ -43,7 +52,9 @@ router.get('/getUsers', function (req, res, next) {
 
 //그룹 이름 중복검사
 //REQ: name
+//RES: OK or Duplicated
 router.get('/checkDuplicate/name', isAuthenticated, function (req, res, next) {
+    //REQ
     var name = req.query.name;
   
     if (name == null) {
@@ -68,10 +79,21 @@ router.get('/checkDuplicate/name', isAuthenticated, function (req, res, next) {
 //그룹 생성
 //REQ: title, content, openOption, color, emoji, userId
 router.post('/create', function (req, res, next) {
-    var queryInsertGroup = "INSERT INTO groups (title, content, open_option, color, emoji, master_user_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
-    db.get().query(queryInsertGroup, [req.body.title, req.body.content, req.body.openOption, req.body.color, req.body.emoji, req.body.userId, req.body.userId], function (err, rows) {
+    //REQ
+    const title = req.body.title;
+    const content = req.body.content;
+    const visibility = req.body.visibility;
+    const color = req.body.color;
+    const emoji = req.body.emoji;
+    const userId = req.body.userId;
+
+    //Insert
+    var queryInsertGroup = "INSERT INTO groups (title, content, visibility, color, emoji, master_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    db.get().query(queryInsertGroup, [title, content, visibility, color, emoji, userId, userId], function (err, rows) {
         if (err) return res.status(400).send(err);
+
+        //Update to add user groupId in user_settings
+        var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
         db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
             if (err) return res.status(400).send(err);
 
@@ -99,21 +121,31 @@ router.post('/create', function (req, res, next) {
 //그룹 검색
 //REQ: searchWord, startPoint 최초: 0
 router.get('/search', function (req, res, next) {
+
+    //REQ
+    const startPoint = req.query.startPoint;
+
     //임시 쿼리
     var searchWord = "";
     searchWord = searchWord.concat("'%", req.query.searchWord, "%'");
     console.log(searchWord);
     
-    var querySelectGroup = "SELECT id, title, content, open_option, color, emoji, user_count AS userCount FROM groups WHERE title LIKE " + searchWord + " LIMIT " + req.query.startPoint + ", 20";
+    var querySelectGroup = "SELECT id, title, content, visibility, color, emoji, user_ids AS userIds FROM groups WHERE title LIKE " + searchWord + " LIMIT " + startPoint + ", 20";
  
     //var querySelectGroup = "SELECT title, content FROM groups WHERE MATCH(title, content) AGAINST (?)";
 
-    db.get().query(querySelectGroup, [req.query.searchWord], function (err, rows) {
-        if (err) {
-            return res.status(400).send(err);
-        } else {
-            return res.status(200).send(rows);
-        };
+    db.get().query(querySelectGroup, [], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        
+        console.log(rows);
+
+        //Count the number of users in each group.
+        for (var i in rows) {
+            rows[i].userCount = getUserCount(rows[i].userIds);
+            delete rows[i].userIds;
+        }
+        
+        return res.status(200).send(rows);
     });
 });
 
@@ -121,23 +153,28 @@ router.get('/search', function (req, res, next) {
 //그룹 가입
 //REQ: userId, groupId, password(default: 0)
 router.post('/join', function(req, res, next) {
+
+    //REQ
+    const groupId = req.body.groupId;
+    const password = req.body.password;
+    const userId = req.body.userId;
     
-    var querySelectGroups = "SELECT COUNT(*) AS count FROM groups WHERE id = ? AND group_pw = ? AND IF(FIND_IN_SET(? , user_ids), 'T', 'F') = 'F' LIMIT 1";
+    var querySelectGroups = "SELECT COUNT(*) AS count FROM groups WHERE id = ? AND password = ? AND IF(FIND_IN_SET(? , user_ids), 'T', 'F') = 'F' LIMIT 1";
     var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
-    var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?), user_count = user_count + 1 WHERE id = ? ";
+    var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?) WHERE id = ? ";
     
     //유효 검사 (그룹 id, pw 일치하는 경우 AND 그룹 가입하지 않은 유저인 경우)
-    db.get().query(querySelectGroups, [req.body.groupId, req.body.password, req.body.userId], function (err, rows) {
+    db.get().query(querySelectGroups, [groupId, password, userId], function (err, rows) {
         if (err) return res.status(400).send(err);
         console.log(rows[0].count);
         
         //유효한 가입인 경우
         if (rows[0].count == 1) {
-            db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
+            db.get().query(queryUpdateUsers, ["," + groupId, userId], function (err, rows) {
                 if (err) return res.status(400).send(err);
                 //console.log(rows);
                 
-                db.get().query(queryUpdategroups, ["," + req.body.userId, req.body.groupId], function (err, rows) {
+                db.get().query(queryUpdategroups, ["," + userId, groupId], function (err, rows) {
                     if (err) return res.status(400).send(err);
                     return res.sendStatus(200);
                 });
@@ -155,5 +192,25 @@ router.post('/join', function(req, res, next) {
 router.post('/withdrawal', function (req, res, next) {
     
 });
+
+
+
+
+/**
+ * Count the number of users using userIds
+ * @param {Target ids} userIds
+ * @returns {Number of users}
+ */
+global.getUserCount = function(userIds) {
+    var userCount = 0;
+    if (userIds != null && userIds.length > 0) {
+        userCount = userIds.split(",").length;
+    }
+
+    return userCount;
+}
+
+
+
 
 module.exports = router;
