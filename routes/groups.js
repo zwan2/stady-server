@@ -178,7 +178,6 @@ router.post('/modify', function (req, res, next) {
 //그룹 검색
 //REQ: searchWord, startPoint 최초: 0
 router.get('/search', function (req, res, next) {
-
     //REQ
     const startPoint = req.query.startPoint;
 
@@ -187,19 +186,16 @@ router.get('/search', function (req, res, next) {
     searchWord = searchWord.concat("'%", req.query.searchWord, "%'");
     console.log(searchWord);
     
-    var querySelectGroup = "SELECT id, title, content, visibility, color, emoji, user_ids AS userIds FROM groups WHERE title LIKE " + searchWord + " LIMIT " + startPoint + ", 20";
+    var querySelectGroup = "SELECT id, title, content, visibility, color, emoji, user_ids AS userIds, master_id AS masterId FROM groups WHERE title LIKE " + searchWord + " LIMIT " + startPoint + ", 20";
  
     //var querySelectGroup = "SELECT title, content FROM groups WHERE MATCH(title, content) AGAINST (?)";
 
     db.get().query(querySelectGroup, [], function (err, rows) {
         if (err) return res.status(400).send(err);
-        
-        console.log(rows);
 
         //Count the number of users in each group.
         for (var i in rows) {
             rows[i].userCount = getUserCount(rows[i].userIds);
-            delete rows[i].userIds;
         }
         
         return res.status(200).send(rows);
