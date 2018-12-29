@@ -28,9 +28,9 @@ router.get('/getMyGroups', function (req, res, next) {
 //특정 그룹 찾기
 //REQ: groupId
 //RES: [{"id":4,"title":"2019행정9급","content":"9급 공무원 !\r\n매일 3시간 이상씩 공부 기록하기\r\n카카오톡 단톡방에 공부 결과 링 스샷 업로드!\r\n매일 아침 9시까지 기상 인증하기\r\n모두모두 화이팅해요~🥰","visibility":0,"color":-13784,"emoji":"😁","masterId":143,"userCount":10}]
-router.get('/:groupId', function (req, res, next) {
+router.get('/getGroup', function (req, res, next) {
     //REQ
-    const groupId = req.params.groupId;
+    const groupId = req.query.groupId;
 
     //Select Row
     var querySelectGroups = "SELECT id, title, content, visibility, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE id = ?";
