@@ -83,7 +83,7 @@ router.post('/create', function (req, res, next) {
     const title = req.body.title;
     const content = req.body.content;
     const visibility = req.body.visibility;
-    const password = req.body.password;
+    var password = req.body.password;
     const color = req.body.color;
     const emoji = req.body.emoji;
     const userId = req.body.userId;
@@ -114,7 +114,7 @@ router.post('/modify', function (req, res, next) {
     const title = req.body.title;
     const content = req.body.content;
     const visibility = req.body.visibility;
-    const password = req.body.password;
+    var password = req.body.password;
     const color = req.body.color;
     const emoji = req.body.emoji;
     const groupId = req.body.groupId;
