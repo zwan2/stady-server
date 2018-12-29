@@ -77,19 +77,24 @@ router.get('/checkDuplicate/name', isAuthenticated, function (req, res, next) {
 });
 
 //그룹 생성
-//REQ: title, content, openOption, color, emoji, userId
+//REQ: title, content, visibility, password, color, emoji, userId
 router.post('/create', function (req, res, next) {
     //REQ
     const title = req.body.title;
     const content = req.body.content;
     const visibility = req.body.visibility;
+    const password = req.body.password;
     const color = req.body.color;
     const emoji = req.body.emoji;
     const userId = req.body.userId;
 
+    if (visibility == 1) {
+        password = null;
+    }
+
     //Insert
-    var queryInsertGroup = "INSERT INTO groups (title, content, visibility, color, emoji, master_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    db.get().query(queryInsertGroup, [title, content, visibility, color, emoji, userId, userId], function (err, rows) {
+    var queryInsertGroup = "INSERT INTO groups (title, content, visibility, password, color, emoji, master_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    db.get().query(queryInsertGroup, [title, content, visibility, password, color, emoji, userId, userId], function (err, rows) {
         if (err) return res.status(400).send(err);
 
         //Update to add user groupId in user_settings
@@ -102,7 +107,33 @@ router.post('/create', function (req, res, next) {
     });
 });
 
-- // //그룹 리스트 뷰 (가장 높은 id부터 내림차로 로딩함) 현재까지 로딩된 데이터의 개수 + 1을 
+//그룹 수정
+//REQ: title, content, visibility, password, color, emoji, groupId
+router.post('/modify', function (req, res, next) {
+    //REQ
+    const title = req.body.title;
+    const content = req.body.content;
+    const visibility = req.body.visibility;
+    const password = req.body.password;
+    const color = req.body.color;
+    const emoji = req.body.emoji;
+    const groupId = req.body.groupId;
+
+    if (visibility == 1) {
+        password = null;
+    }
+
+    //Update
+    var queryUpdateGroup = "UPDATE groups SET title = ?, content = ?, visibility = ?, password = ?, color = ?, emoji = ? WHERE id = ?";
+    db.get().query(queryUpdateGroup, [title, content, visibility, password, color, emoji, groupId], function (err, rows) {
+        if (err) return res.status(400).send(err);
+
+        return res.sendStatus(200);
+    });
+});
+
+
+// //그룹 리스트 뷰 (가장 높은 id부터 내림차로 로딩함) 현재까지 로딩된 데이터의 개수 + 1을 
 // //REQ: startPoint (현재까지 로딩된 데이터의 개수)
 // router.get('/fullList', function (req, res, next) {
 
