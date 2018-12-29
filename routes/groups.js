@@ -9,9 +9,9 @@ router.get('/', function (req, res, next) {
 
 //내 그룹 목록(메인)
 //REQ: userId
-//RES: {"title":"공시반","open_option":0,"subtitle":"","user_count":1,"master_user_id":1}
+//RES: {"title":"공시반","visibility":0,"content":"","master_user_id":1}
 router.get('/getMyGroups', function (req, res, next) {
-    var querySelectGroups = "SELECT id, title, content, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE FIND_IN_SET(? , user_ids)";
+    var querySelectGroups = "SELECT id, title, content, visibility, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE FIND_IN_SET(? , user_ids)";
     db.get().query(querySelectGroups, req.query.userId, function (err, rows) {  
         if (err) return res.status(400).send(err);
 
@@ -22,6 +22,32 @@ router.get('/getMyGroups', function (req, res, next) {
         }
         
         return res.status(200).send(rows);
+    });
+});
+
+//특정 그룹 찾기
+//REQ: groupId
+//RES: [{"id":4,"title":"2019행정9급","content":"9급 공무원 !\r\n매일 3시간 이상씩 공부 기록하기\r\n카카오톡 단톡방에 공부 결과 링 스샷 업로드!\r\n매일 아침 9시까지 기상 인증하기\r\n모두모두 화이팅해요~🥰","visibility":0,"color":-13784,"emoji":"😁","masterId":143,"userCount":10}]
+router.get('/:groupId', function (req, res, next) {
+    //REQ
+    const groupId = req.params.groupId;
+
+    //Select Row
+    var querySelectGroups = "SELECT id, title, content, visibility, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE id = ?";
+    db.get().query(querySelectGroups, groupId, function (err, rows) {  
+        if (err) return res.status(400).send(err);
+
+        console.log(rows[0]);
+        
+
+        //No content
+        if (rows[0] == undefined) return res.sendStatus(204);
+
+        //Count the number of users.
+        rows[0].userCount = getUserCount(rows[0].userIds);
+        delete rows[0].userIds;
+        
+        return res.status(200).send(rows[0]);
     });
 });
 
