@@ -18,7 +18,7 @@ router.get('/getMyGroups', function (req, res, next) {
         //Count the number of users in each group.
         for (var i in rows) {
             rows[i].userCount = getUserCount(rows[i].userIds);
-            delete rows[i].userIds;
+            
         }
         
         return res.status(200).send(rows);
@@ -45,7 +45,7 @@ router.get('/getGroup', function (req, res, next) {
 
         //Count the number of users.
         rows[0].userCount = getUserCount(rows[0].userIds);
-        delete rows[0].userIds;
+    
         
         return res.status(200).send(rows[0]);
     });
@@ -124,12 +124,13 @@ router.post('/create', function (req, res, next) {
         if (err) return res.status(400).send(err);
 
         //Update to add user groupId in user_settings
-        var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
-        db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
-            if (err) return res.status(400).send(err);
+        // var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
+        // db.get().query(queryUpdateUsers, ["," + req.body.groupId, req.body.userId], function (err, rows) {
+        //     if (err) return res.status(400).send(err);
 
-            return res.sendStatus(200);
-        });
+        //     return res.sendStatus(200);
+        // });
+        return res.sendStatus(200);
     });
 });
 
@@ -157,22 +158,6 @@ router.post('/modify', function (req, res, next) {
         return res.sendStatus(200);
     });
 });
-
-
-// //그룹 리스트 뷰 (가장 높은 id부터 내림차로 로딩함) 현재까지 로딩된 데이터의 개수 + 1을 
-// //REQ: startPoint (현재까지 로딩된 데이터의 개수)
-// router.get('/fullList', function (req, res, next) {
-
-//     var querySelectgroup = "SELECT id, exam_id, title, subtitle, user_count, master_user_id FROM group WHERE open_option = 1 ORDER BY id DESC LIMIT " + req.query.startPoint + ", 5;";
-
-//     db.get().query(querySelectgroup, function (err, rows) {
-//         if (err) {
-//             return res.status(400).send(err);
-//         } else {
-//             return res.status(200).send(JSON.stringify(rows));
-//         };
-//     });
-// });
 
 
 //그룹 검색
@@ -213,7 +198,7 @@ router.post('/join', function(req, res, next) {
     const userId = req.body.userId;
     
     var querySelectGroups = "SELECT COUNT(*) AS count FROM groups WHERE id = ? AND password = ? AND IF(FIND_IN_SET(? , user_ids), 'T', 'F') = 'F' LIMIT 1";
-    var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
+    //var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
     var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?) WHERE id = ? ";
     
     //유효 검사 (그룹 id, pw 일치하는 경우 AND 그룹 가입하지 않은 유저인 경우)
@@ -223,14 +208,10 @@ router.post('/join', function(req, res, next) {
         
         //유효한 가입인 경우
         if (rows[0].count == 1) {
-            db.get().query(queryUpdateUsers, ["," + groupId, userId], function (err, rows) {
+            
+            db.get().query(queryUpdategroups, ["," + userId, groupId], function (err, rows) {
                 if (err) return res.status(400).send(err);
-                //console.log(rows);
-                
-                db.get().query(queryUpdategroups, ["," + userId, groupId], function (err, rows) {
-                    if (err) return res.status(400).send(err);
-                    return res.sendStatus(200);
-                });
+                return res.sendStatus(200);
             });
         } 
         //유효하지 않은 가입인 경우
@@ -241,11 +222,32 @@ router.post('/join', function(req, res, next) {
     });
 });
 
+//유저 탈퇴 (일반 유저)
 //REQ: userId, groupId
-router.post('/withdrawal', function (req, res, next) {
-    
+router.post('/leave', function (req, res, next) {
+    const userId = req.body.userId;
+    const groupId = req.body.groupId;
+    var querySelectGroups = "SELECT master_id, user_ids FROM groups WHERE id = ?";
+    var queryUpdateGroups = "UPDATE groups SET user_ids = ? WHERE group_id = ?";
+    db.get().query(querySelectGroups, [groupId], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        //마스터 유저 예외 처리
+        if(rows[0].master_id == userId) {
+            return res.sendStatus(400);
+        } else {
+            var replaceResult = rows[0].user_ids.replace("," + userId, "");
+            
+        }
+
+    });
+
 });
 
+//그룹 삭제 
+//REQ: uesrId, groupId
+router.post('/withdrawal', function(req, res ,next) {
+
+});
 
 
 
