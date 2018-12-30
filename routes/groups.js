@@ -272,10 +272,18 @@ router.post('/leave', function (req, res, next) {
         if(rows[0].master_id == userId) {
             return res.sendStatus(400);
         } else {    
-            var replaceUserIds = rows[0].user_ids.replace("," + userId, "");
+            //var replaceUserIds = rows[0].user_ids.replace("," + userId, "");
+            var userIds = rows[0].user_ids.split(',');
+            for (var i in userIds) {
+                if (userIds[i] == userId) {
+                    userIds.splice(i, 1);
+                }
+            }
+            var sUserIds = userIds.join(',');
+
             //console.log(replaceUserIds);
             
-            db.get().query(queryUpdateGroups, [replaceUserIds, groupId], function (err, rows) {
+            db.get().query(queryUpdateGroups, [sUserIds, groupId], function (err, rows) {
                 if (err) return res.status(400).send(err);
                 return res.sendStatus(200);
             });
