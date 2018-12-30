@@ -115,11 +115,14 @@ router.post('/create', function (req, res, next) {
     const userId = req.body.userId;
 
     if (visibility == 1) {
-        password = null;
+        password = '';
+    } else if (password == undefined || password.length == 0) {
+        return res.sendStatus(400);
     }
+    
 
     //Insert
-    var queryInsertGroup = "INSERT INTO groups (title, content, visibility, password, color, emoji, master_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    var queryInsertGroup = "INSERT INTO groups (title, content, visibility, password, color, emoji, master_id, user_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     db.get().query(queryInsertGroup, [title, content, visibility, password, color, emoji, userId, userId], function (err, rows) {
         if (err) return res.status(400).send(err);
 
@@ -189,37 +192,70 @@ router.get('/search', function (req, res, next) {
 
 
 //그룹 가입
-//REQ: userId, groupId, password(default: 0)
+//REQ: userId, groupId, password(default: '')
 router.post('/join', function(req, res, next) {
 
     //REQ
     const groupId = req.body.groupId;
     const password = req.body.password;
     const userId = req.body.userId;
-    
-    var querySelectGroups = "SELECT COUNT(*) AS count FROM groups WHERE id = ? AND password = ? AND IF(FIND_IN_SET(? , user_ids), 'T', 'F') = 'F' LIMIT 1";
-    //var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
-    var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?) WHERE id = ? ";
-    
-    //유효 검사 (그룹 id, pw 일치하는 경우 AND 그룹 가입하지 않은 유저인 경우)
-    db.get().query(querySelectGroups, [groupId, password, userId], function (err, rows) {
+
+    //select where id = groupId => visibility, password
+    var querySelectGroups = "SELECT user_ids AS userIds, visibility, password FROM groups WHERE id = ? LIMIT 1";
+    db.get().query(querySelectGroups, groupId, function (err, rows) {
         if (err) return res.status(400).send(err);
-        console.log(rows[0].count);
-        
-        //유효한 가입인 경우
-        if (rows[0].count == 1) {
-            
+
+        //이미 그룹에 가입한 유저인지 체크 (중복 체크)
+        var userIds = rows[0].userIds.split(",");
+        if (userIds.includes(userId)) {
+            //중복!
+            return res.status(400).send('Duplicated');
+        }
+
+        //visibility가 0이면서 비밀번호가 맞는 상황과, visibility가 1이면 바로 가입 성공 처리
+        if ((rows[0].visibility == 0 && rows[0].password == password) || rows[0].visibility == 1) {
+            //Success
+            var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?) WHERE id = ? ";
             db.get().query(queryUpdategroups, ["," + userId, groupId], function (err, rows) {
                 if (err) return res.status(400).send(err);
                 return res.sendStatus(200);
             });
-        } 
-        //유효하지 않은 가입인 경우
-        else {
-            return res.sendStatus(401);
+        } else {
+            //Fail
+            res.sendStatus(401);
         }
-   
     });
+
+    // var querySelectGroups = "SELECT visibility, password FROM groups WHERE id = ?";
+    // db.get().query(querySelectGroups, groupId, function (err, rows) {
+    //     if(rows[0].visibility == 0) {
+    //         var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?) WHERE id = ? ";       
+    //     }
+
+    //     var querySelectGroups2 = "SELECT COUNT(*) AS count FROM groups WHERE id = ? AND password = ? AND IF(FIND_IN_SET(? , user_ids), 'T', 'F') = 'F' LIMIT 1";
+    //     //var queryUpdateUsers = "UPDATE user_settings SET group_ids = CONCAT(group_ids, ?) WHERE user_id = ?";
+    //     var queryUpdategroups = "UPDATE groups SET user_ids = CONCAT(user_ids, ?) WHERE id = ? ";
+        
+    //     //유효 검사 (그룹 id, pw 일치하는 경우 AND 그룹 가입하지 않은 유저인 경우)
+    //     db.get().query(querySelectGroups2, [groupId, password, userId], function (err, rows) {
+    //         if (err) return res.status(400).send(err);
+    //         console.log(rows[0].count);
+            
+    //         //유효한 가입인 경우
+    //         if (rows[0].count == 1) {
+                
+    //             db.get().query(queryUpdategroups, ["," + userId, groupId], function (err, rows) {
+    //                 if (err) return res.status(400).send(err);
+    //                 return res.sendStatus(200);
+    //             });
+    //         } 
+    //         //유효하지 않은 가입인 경우
+    //         else {
+    //             return res.sendStatus(401);
+    //         }
+    
+    //     });
+    // });
 });
 
 //유저 탈퇴 (일반 유저)
@@ -228,15 +264,21 @@ router.post('/leave', function (req, res, next) {
     const userId = req.body.userId;
     const groupId = req.body.groupId;
     var querySelectGroups = "SELECT master_id, user_ids FROM groups WHERE id = ?";
-    var queryUpdateGroups = "UPDATE groups SET user_ids = ? WHERE group_id = ?";
-    db.get().query(querySelectGroups, [groupId], function (err, rows) {
+    var queryUpdateGroups = "UPDATE groups SET user_ids = ? WHERE id = ?";
+    db.get().query(querySelectGroups, groupId, function (err, rows) {
         if (err) return res.status(400).send(err);
+        
         //마스터 유저 예외 처리
         if(rows[0].master_id == userId) {
             return res.sendStatus(400);
-        } else {
-            var replaceResult = rows[0].user_ids.replace("," + userId, "");
+        } else {    
+            var replaceUserIds = rows[0].user_ids.replace("," + userId, "");
+            //console.log(replaceUserIds);
             
+            db.get().query(queryUpdateGroups, [replaceUserIds, groupId], function (err, rows) {
+                if (err) return res.status(400).send(err);
+                return res.sendStatus(200);
+            });
         }
 
     });
@@ -246,6 +288,21 @@ router.post('/leave', function (req, res, next) {
 //그룹 삭제 
 //REQ: uesrId, groupId
 router.post('/withdrawal', function(req, res ,next) {
+    const userId = req.body.userId;
+    const groupId = req.body.groupId;
+    var queryDeleteGroups = "DELETE FROM groups WHERE master_id = ? AND id = ?";
+    db.get().query(queryDeleteGroups, [userId, groupId], function (err, rows) {
+        if (err) return res.status(400).send(err);
+        
+        //로그용
+        if (rows.affectedRows == 0) {
+            console.log('fail');
+        } else {
+            console.log('success');
+        }
+
+        return res.sendStatus(200);
+    });
 
 });
 
