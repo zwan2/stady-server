@@ -125,11 +125,77 @@ app.listen(80, function () {
   console.log('Server... on port 80');
 });
 
-var scheduler = schedule.scheduleJob('* * 19 * * *', function () { 
-  //function () {....} 
-  console.log('정시를 알려드립니다!'); 
+
+
+
+///////// Firebase 삭제 구문 START ////////
+const admin = require('firebase-admin');
+var serviceAccount = require('./firebase-key.json');
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+var db = admin.firestore();
+
+var scheduler = schedule.scheduleJob('1 0 0 * * *', function () { 
+  console.log('Firebase 삭제 시작');
+
+  deleteCollection(db, 'study', 1000).then(function() {
+    console.log('Firebase 삭제 끝');
+    console.log('Firebase 추가 시작');
+
+    var data = {
+      test: 'test!'
+    };
+    db.collection('study').doc('test').set(data);
+
+    console.log('Firebase 추가 끝');
+  });
 });
 scheduler;
+
+function deleteCollection(db, collectionPath, batchSize) {
+  var collectionRef = db.collection(collectionPath);
+  var query = collectionRef.orderBy('__name__').limit(batchSize);
+
+  return new Promise((resolve, reject) => {
+    deleteQueryBatch(db, query, batchSize, resolve, reject);
+  });
+}
+
+function deleteQueryBatch(db, query, batchSize, resolve, reject) {
+  query.get()
+      .then((snapshot) => {
+        // When there are no documents left, we are done
+        if (snapshot.size == 0) {
+          return 0;
+        }
+
+        // Delete documents in a batch
+        var batch = db.batch();
+        snapshot.docs.forEach((doc) => {
+          batch.delete(doc.ref);
+        });
+
+        return batch.commit().then(() => {
+          return snapshot.size;
+        });
+      })
+      .then((numDeleted) => {
+        if (numDeleted === 0) {
+          resolve();
+          return;
+        }
+
+        // Recurse on the next process tick, to avoid
+        // exploding the stack.
+        process.nextTick(() => {
+          deleteQueryBatch(db, query, batchSize, resolve, reject);
+        });
+      })
+      .catch(reject);
+}
+
+///////// Firebase 삭제 구문 END ////////
 
 
 module.exports = app;
