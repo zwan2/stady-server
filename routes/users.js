@@ -258,6 +258,51 @@ router.post('/changeName', isAuthenticated, function (req, res, next) {
       return res.status(200).send(JSON.stringify(newTime));
     });
   });
+
+});
+
+// 6. emoji, color 업데이트
+// REQ: userId, emoji, color
+router.post('/changeInformation', isAuthenticated, function (req, res, next) {
+  var userId = req.body.userId;
+  var emoji = req.body.emoji;
+  var color = req.body.color;
+  
+  var query = "UPDATE user_settings SET ";
+  var queryVar = new Array();
+
+  var comma = false;
+  var count = 0;
+  var where = " WHERE user_id = ? LIMIT 1";
+
+  //emoji
+  if (emoji != undefined) {
+    query += "emoji = ?";
+    comma = true;
+    queryVar[count++] = emoji;
+  }
+  //color
+  if (color != undefined) {
+    if (comma) {
+      comma = false;
+      query += ",";
+    }
+    query += "color = ?";
+    comma = true;
+    queryVar[count++] = color;
+  }
+
+  if (count == 0) {
+    return res.sendStatus(400);
+  }
+  queryVar[count++] = userId;
+  
+  
+  db.get().query(query + where, queryVar, function (err, rows) {
+    if (err) return res.status(400).send(err);
+    return res.sendStatus(200);
+  });
+
 });
 
 

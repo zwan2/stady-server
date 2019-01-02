@@ -106,7 +106,9 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?"
                                 +" AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)"
                                 +" AND DATE(h.end_point) = ? ORDER BY h.subject_id, h.study_id";
-                                
+
+
+    
     db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
         if (err) return res.status(400).send(err);
             
@@ -150,21 +152,14 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 
                 var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
                
-                //rank
-                var avgT = total / 30;
-                var avgAR = total / goal;
-                var avgCC = total / termCount;
-                
-               
-                var rank = loadRank(avgT, avgAR, avgCC);
-
                 var loadDayStatResult = {
                     total: total,
                     goal: goal,
                     achievementRate: total / goal * 100,
                     continuousConcentration: continuousConcentration,
-                    subject: subject,
-                    rank: rank
+                    //기존 graph
+                    subject: subject
+
                 }
                 
                 return res.status(200).send(loadDayStatResult);
@@ -172,7 +167,22 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             });
         });
     });
+
+
 });
+
+//  //2.1. 비교 지표 - 내 등수
+//  var querySelectHistories3 = "SELECT COUNT(*)+1 AS ranking FROM histories WHERE SUM(term) > (SELECT SUM(term) FROM historiess WHERE user_id = ?)";
+
+//  //2.1. 비교 지표 - 최대, 평균 공부시간
+//  var querySelectHistories3 = "SELECT MAX(term) AS MAX_T, AVG(term) AS AVG_T FROM histories" +
+//      "WHERE exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
+//      "GROUP BY user_id";
+
+//  db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
+//      if (err) return res.status(400).send(err);
+//      return rows1
+//  });
 
 
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
@@ -288,8 +298,22 @@ router.get('/loadRanking', isAuthenticated, function (req, res, next) {
     });
 });
 
-router.get('/')
-//2. 상위 5%,10,25의 공부시간, 공부시간 분류
+//1일치 정보 Timeline 불러오기
+//req: targetTime, userId
+router.get('/timeline', isAuthenticated, function (req, res, next) {
+    var targetTime = req.query.targetTime;
+    var userId = req.query.userId;
+    
+    var querySelectHistories = "SELECT exam_address, subject_id, study_id, start_point, end_point, term FROM histories"
+                                +" WHERE user_id = ? AND start_point >= ?";
+    
+    db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
+        if (err) return res.status(400).send(err);
+         return res.status(200).send(rows);
+    });
+
+});
+
 
 
 module.exports = router;
