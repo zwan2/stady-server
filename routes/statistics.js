@@ -170,19 +170,37 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 
 });
+router.get('/test', isAuthenticated, function (req, res, next) {
+    var targetTime = req.query.targetTime;
+    var userId = req.query.userId;
+    //2.1. 랭킹
+    var querySelectHistories2 = "SELECT user_id, SUM(term) AS total FROM histories " 
+                                +"WHERE exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) " 
+                                +"AND DATE(end_point) = ? GROUP BY user_id "
+                                + "HAVING user_id in (SELECT id FROM user_accounts) ORDER BY total DESC";
 
-//  //2.1. 비교 지표 - 내 등수
-//  var querySelectHistories3 = "SELECT COUNT(*)+1 AS ranking FROM histories WHERE SUM(term) > (SELECT SUM(term) FROM historiess WHERE user_id = ?)";
+    //2.2. 비교 지표 - 유저들의 최대, 평균 공부시간
+    var querySelectHistories3 = "SELECT MAX(term) AS MAX_T, AVG(term) AS AVG_T FROM histories "
+                                + "WHERE exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) "
+                                + "AND DATE(end_point) = ?";
 
-//  //2.1. 비교 지표 - 최대, 평균 공부시간
-//  var querySelectHistories3 = "SELECT MAX(term) AS MAX_T, AVG(term) AS AVG_T FROM histories" +
-//      "WHERE exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
-//      "GROUP BY user_id";
+    db.get().query(querySelectHistories2, [userId, targetTime], function (err, rows1) {
+        if (err) return res.status(400).send(err);
+        
+        //총 인원
+        var length = Object.keys(rows1).length;
+        console.log(length);
+        //내 랭킹 어떻게든 찾기
 
-//  db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
-//      if (err) return res.status(400).send(err);
-//      return rows1
-//  });
+        db.get().query(querySelectHistories3, [userId, targetTime], function (err, rows2) {
+            if (err) return res.status(400).send(err);
+            return res.status(200).send(rows2);
+        });
+
+        
+    });
+});
+
 
 
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
@@ -309,7 +327,8 @@ router.get('/timeline', isAuthenticated, function (req, res, next) {
     
     db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
         if (err) return res.status(400).send(err);
-         return res.status(200).send(rows);
+        
+        return res.status(200).send(rows);
     });
 
 });

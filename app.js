@@ -9,6 +9,8 @@ var session = require('express-session');
 var passport = require('passport'),
   LocalStrategy = require('passport-local').Strategy;
 var flash = require('connect-flash');
+var schedule = require('node-schedule');
+
 
 //db
 var db = require('./config/db');
@@ -122,6 +124,12 @@ app.listen(3000, function () {
 app.listen(80, function () {
   console.log('Server... on port 80');
 });
+
+var scheduler = schedule.scheduleJob('* * 19 * * *', function () { 
+  //function () {....} 
+  console.log('정시를 알려드립니다!'); 
+});
+scheduler;
 
 
 module.exports = app;
