@@ -170,6 +170,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 
 });
+//REQ: targetTime, userId
 router.get('/test', isAuthenticated, function (req, res, next) {
     var targetTime = req.query.targetTime;
     var userId = req.query.userId;
@@ -184,6 +185,9 @@ router.get('/test', isAuthenticated, function (req, res, next) {
                                 + "WHERE exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) "
                                 + "AND DATE(end_point) = ?";
 
+    var querySelectHistories4 = "SELECT * FROM histories WHERE subject_id IN (SELECT subject_ids FROM user_settings WHERE user_id = ?) "
+                                +"AND DATE(end_point) = ?";
+
     db.get().query(querySelectHistories2, [userId, targetTime], function (err, rows1) {
         if (err) return res.status(400).send(err);
         
@@ -194,7 +198,16 @@ router.get('/test', isAuthenticated, function (req, res, next) {
 
         db.get().query(querySelectHistories3, [userId, targetTime], function (err, rows2) {
             if (err) return res.status(400).send(err);
-            return res.status(200).send(rows2);
+            
+            db.get().query(querySelectHistories4, [userId, targetTime], function (err, rows3) {
+                if (err) return res.status(400).send(err);
+                return res.status(200).send(rows3);
+            });
+            
+            
+            //return res.status(200).send(rows2);
+
+
         });
 
         

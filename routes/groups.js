@@ -65,7 +65,7 @@ router.get('/getUsers', function (req, res, next) {
         const userIds = rows1[0].userIds;
         
         //2. Get detail user information of the group
-        var querySelectSettings = "SELECT S.user_id AS id, S.name, S.emoji, S.color, (SELECT today_goal FROM user_goals as G WHERE G.user_id = S.user_id ORDER BY id DESC LIMIT 1) AS goal" +
+        var querySelectSettings = "SELECT S.user_id AS id, S.exam_address AS examAddress, S.name, S.emoji, S.color, (SELECT today_goal FROM user_goals as G WHERE G.user_id = S.user_id ORDER BY id DESC LIMIT 1) AS goal" +
             " FROM user_settings S WHERE S.user_id IN (" + userIds +")";
         db.get().query(querySelectSettings, function (err, rows2) {
             if (err) return res.status(400).send(err);
