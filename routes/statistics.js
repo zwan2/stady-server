@@ -305,9 +305,9 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         //#1. subjects
         //subjectId
         var subjects = [];
-        var subjectIds = userSettings[0].subject_ids
-        var subjectIdsArray = subjectIds.split(",");
-      
+        var subjectIds = userSettings[0].subject_ids.split(",");
+        var subjectColors = userSettings[0].subject_colors.split(",");
+
         //subjectGoals
         //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
         var subjectGoals = goal[0].subject_goals.split(",");
@@ -319,10 +319,10 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         
         //#1.1. subjects.totals
         var totals = [];
-        for (var i = 0; i < subjectIdsArray.length; i++) {
+        for (var i = 0; i < subjectIds.length; i++) {
             var terms = [0, 0, 0, 0];
             for (var j = 0; j < rows2.length; j++) {
-                if (subjectIdsArray[i] == rows2[j].subject_id) {
+                if (subjectIds[i] == rows2[j].subject_id) {
                     terms[rows2[j].study_id] += rows2[j].term;
                 }
             }
@@ -331,12 +331,12 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
         
         
-        for (var i = 0; i < subjectIdsArray.length; i++) {
+        for (var i = 0; i < subjectIds.length; i++) {
             var subjectGoal;
             //#1.2. subjects.goal
             //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
             for (var j = 0; j < subjectGoals2.length; j++) {
-                if (subjectIdsArray[i] == subjectGoals2[j][0]) {
+                if (subjectIds[i] == subjectGoals2[j][0]) {
                     subjectGoal = subjectGoals2[j][1];
                     break;
                 } else {
@@ -344,9 +344,9 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 }
             }
             var subject = {
-                id: subjectIdsArray[i],
+                id: subjectIds[i],
                 name: rows3[i].title,
-                color: -100000,
+                color: subjectColors[i],
                 totals: totals[i], 
                 goal: subjectGoal,
                 ranking: 1,
@@ -365,10 +365,10 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             names.push(rows3[i].title);
         }
 
-        for (var i = 0; i < subjectIdsArray.length; i++) {
+        for (var i = 0; i < subjectIds.length; i++) {
             var terms = [0, 0, 0, 0];
             for (var j = 0; j < rows2.length; j++) {
-                if (subjectIdsArray[i] == rows2[j].subject_id) {
+                if (subjectIds[i] == rows2[j].subject_id) {
                     terms[rows2[j].study_id] += rows2[j].term;
                 }
             }
@@ -490,7 +490,7 @@ router.get('/loadRanking', isAuthenticated, function (req, res, next) {
                         var terms = [0, 0, 0, 0];
                         /*
                         for (var j = 0; j < rows2.length; j++) {
-                            if (subjectIdsArray[i] == rows4[j].subject_id) {
+                            if (subjectIds[i] == rows4[j].subject_id) {
                                 terms[rows4[j].study_id] += rows4[j].today_total;
                             }
                         }*/
