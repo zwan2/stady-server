@@ -31,7 +31,7 @@ global.loadSettings = function(userId, updatedAt, callback) {
 
         else if (available) {
             //There is update. We need to send a new information.
-            getSettings(userId, function(err, code, name, color, emoji, examAddress, subjectIds, timeOffset) {
+            getSettings(userId, function(err, code, name, color, emoji, examAddress, subjectIds, subjectColors, timeOffset) {
                 if (err) return callback(err);
     
                 if (code) return callback(null, 401);
@@ -57,7 +57,8 @@ global.loadSettings = function(userId, updatedAt, callback) {
                             for (var i=0 ; i<subjectIds.length ; i++) {
                                 subjects[i] = {
                                     id: subjectIds[i],
-                                    title: subjectTitles[i]
+                                    title: subjectTitles[i],
+                                    color: subjectColors[i]
                                 }
                             }
                             var settings = {
@@ -119,7 +120,7 @@ global.isUpdateAvailable = function(tableName, userId, updatedAt, callback) {
  * @param {Callback to return result of query} callback 
  */
 global.getSettings = function(userId, callback) {
-    var querySelectSettings = "SELECT name, color, emoji, exam_address, subject_ids, time_offset FROM user_settings WHERE user_id = ?";
+    var querySelectSettings = "SELECT name, color, emoji, exam_address, subject_ids, subject_colors, time_offset FROM user_settings WHERE user_id = ?";
 
     db.get().query(querySelectSettings, userId, function (err, rows) {
         if (err) callback(err);
@@ -129,7 +130,7 @@ global.getSettings = function(userId, callback) {
             callback(null, 401, null, null);
         }
         else {
-            callback(null, null, rows[0].name, rows[0].color, rows[0].emoji, rows[0].exam_address.split('_'), rows[0].subject_ids.split(','), rows[0].time_offset);
+            callback(null, null, rows[0].name, rows[0].color, rows[0].emoji, rows[0].exam_address.split('_'), rows[0].subject_ids.split(','), rows[0].subject_colors.split(','), rows[0].time_offset);
         }
     });
 }
