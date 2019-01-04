@@ -175,7 +175,7 @@ function getMyRanking(targetTime, userId) {
             console.log(rows[0]);
             
             var highestTime = rows[0].total;
-            var averageTime = totalTerm / rows.length;
+            var averageTime = parseInt(totalTerm / rows.length);
             var rankingResult = {
                 ranking: ranking,
                 highestTime: highestTime,
@@ -440,11 +440,14 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
         //#2. loadDayStat
         var total = rows1[0].total == null ? 0 : rows1[0].total;
-        var todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
+        var todayGoal = goal[0].today_goal == null ? 3600 : goal[0].today_goal;
         var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
-        var achievementRate = rows1[0].total == null ? 0 : total / goal.todayGoal * 100;
+        var achievementRate = rows1[0].total == null ? 0 : (total / goal[0].today_goal) * 100;
         var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
-
+        console.log(total);
+        console.log(goal[0].today_goal);
+        
+        
         var loadDayStatResult = {
             total: total,
             goal: todayGoal,
