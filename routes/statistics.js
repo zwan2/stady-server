@@ -87,7 +87,7 @@ function getRank(score) {
         return "F";
     }
 }
-
+//기존 쿼리1
 function loadDayStatQuery1 (targetTime, userId) {
     return new Promise(function(resolved, rejected) {
         var querySelectHistories = "SELECT SUM(term) AS total, (SELECT today_goal FROM user_goals WHERE reg_time <= ? AND user_id = ? ORDER BY reg_time DESC LIMIT 1) AS goal," +
@@ -98,120 +98,52 @@ function loadDayStatQuery1 (targetTime, userId) {
 
             //성공한 경우 인자값을 넘긴다.
             resolved(rows1);
-            //console.log(rows1);
+            console.log(rows1);
             
             //return rows1;
         });
     });
 }
-
-function loadDayStatQuery3(targetTime, userId, rows1, rows2) {
+//기존 쿼리2
+function loadDayStatQuery2(targetTime, userId) {
     return new Promise(function (resolved, rejected) {
-        console.log(rows1);
+        var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?" +
+            " AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
+            " AND DATE(h.end_point) = ? ORDER BY h.subject_id, h.study_id";
+        db.get().query(querySelectHistories2, [userId, userId, targetTime], function (err, rows2) {
+            if (err) rejected(Error(err))
+
+            //성공한 경우 인자값을 넘긴다.
+            //console.log(rows2);
+            
+            resolved(rows2);
+
+        });
+    });
+}
+
+//기존 쿼리3
+function loadDayStatQuery3(subjectIds) {
+    return new Promise(function (resolved, rejected) {
         
-        var subjectIds = rows1[0].subjectIds;
         var subjectIdsArray = subjectIds.split(",");
         var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + subjectIds + ")";
-        db.get().query(querySelectSubjects, function (err, rows3) {
-            if (err) return res.status(400).send(err);
-
-            var names = [],
-                totals = [];
-            for (var i = 0; i < rows3.length; i++) {
-                names.push(rows3[i].title);
-            }
-
-            for (var i = 0; i < subjectIdsArray.length; i++) {
-                var terms = [0, 0, 0, 0];
-                for (var j = 0; j < rows2.length; j++) {
-                    if (subjectIdsArray[i] == rows2[j].subject_id) {
-                        terms[rows2[j].study_id] += rows2[j].term;
-                    }
-                }
-                totals.push(terms);
-            }
-
-            var subject = {
-                totals: totals,
-                names: names
-            }
-
-            var total = rows1[0].total == null ? 0 : rows1[0].total;
-            var goal = rows1[0].goal == null ? 3600 : rows1[0].goal;
-            var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
-
-            var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
-
-            var loadDayStatResult = {
-                total: total,
-                goal: goal,
-                achievementRate: total / goal * 100,
-                continuousConcentration: continuousConcentration,
-                //기존 graph
-                subject: subject
-            }
-
-            return res.status(200).send(loadDayStatResult);
-
-        });
-    });
-}
-
-function selectSubjectIds(userId) {
-    return new Promise(function (resolved, rejected) {
-        var querySelectHistories = "SELECT subject_ids FROM user_settings WHERE user_id = ?";
-        db.get().query(querySelectHistories, userId, function (err, rows) {
+        db.get().query(querySelectSubjects, function (err, rows3) {  
             if (err) rejected(Error(err))
-            //성공한 경우 인자값을 넘긴다.
-            resolved(rows);
-
-        });
-    });
-}
-function selectSubjectTerm(targetTime, userId) {
-    return new Promise(function (resolved, rejected) {
-        var querySelectHistories = "SELECT h.subject_id, SUM(h.term) AS term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?" +
-            " AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
-            " AND DATE(h.end_point) = ? GROUP BY h.subject_id ORDER BY h.subject_id";
-        db.get().query(querySelectHistories, [userId, userId, targetTime], function (err, rows) {
-            if (err) rejected(Error(err))
-            //성공한 경우 인자값을 넘긴다.
-
-            resolved(rows);
-            //return rows2;
-        });
-    });
-}
-function selectSubjectGoals(targetTime, userId) {
-    return new Promise(function (resolved, rejected) {
-        var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
-        var querySelectHistories = "SELECT subject_goals FROM user_goals WHERE user_id = ? AND DATE(reg_time) < ? ORDER BY id DESC LIMIT 1"
-        db.get().query(querySelectHistories, [userId, tomorrowTime], function (err, rows) {
-            if (err) rejected(Error(err))
+            //console.log(rows3);
             
             //성공한 경우 인자값을 넘긴다.
-            resolved(rows);
-        });
-    });
-}
-function selectSubjectAvg(targetTime, subjectId) {
-    return new Promise(function (resolved, rejected) {
+            resolved(rows3);
 
-        var querySelectHistories = "SELECT user_id, SUM(term) as term FROM histories "
-                                    +"WHERE DATE(end_point) = ? AND subject_id = ? "
-                                    +"GROUP BY user_id";
-            if (err) rejected(Error(err));
-            var rows
-            //성공한 경우 인자값을 넘긴다.
-            resolved(rows);
         });
     });
 }
 
+//ranking, highest, avg
 function getMyRanking(targetTime, userId) {
     return new Promise(function (resolved, rejected) {
        
-        var query = "SELECT user_id AS userId, SUM(term)/3600 AS total " +
+        var query = "SELECT user_id AS userId, SUM(term) AS total " +
             "FROM histories " +
             "WHERE DATE(start_point) = ? " +
             "GROUP BY user_id " +
@@ -221,43 +153,110 @@ function getMyRanking(targetTime, userId) {
 
         db.get().query(query, targetTime, function (err, rows) {
             if (err) rejected(Error(err));
-
-            
             
 
             //나의 랭킹을 찾기전 미리 꼴등으로 설정해놓는다.
             //만약 rows에 내 기록이 없는 경우에는 꼴지로 해야되니까 미리 해놓음
             var ranking = rows.length;
-
+            var totalTerm = 0;
             //나의 공부시간 등수를 찾는다. (DESC 정렬이기에 바로 가능)
             for (var i in rows) {
                 if (rows[i].userId == userId) {
-                    ranking = i;
+                    ranking = parseInt(i) + 1;
                     break;
                 }
             }
+
+            //총합 계산
+            for(var i in rows) {
+                //console.log(rows[i]);
+                totalTerm += rows[i].total;
+            }
+            console.log(rows[0]);
             
-            resolved(parseInt(ranking) + 1);
+            var highestTime = rows[0].total;
+            var averageTime = totalTerm / rows.length;
+            var rankingResult = {
+                ranking: ranking,
+                highestTime: highestTime,
+                averageTime: averageTime
+            }
+            
+
+            resolved(rankingResult);
         });
     });
 }
-function getExamAvg(targetTime, userId) {
+//today_goal, subject_goals
+function getMyGoals(targetTime, userId) {
     return new Promise(function (resolved, rejected) {
+        var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
 
-        var querySelectHistories = "SELECT AVG(term) as avgtTerm FROM histories " +
-            "WHERE DATE(end_point) = ? AND exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) ";
-        db.get().query(querySelectHistories, [targetTime, userId], function (err, rows) {
-            if (err) rejected(Error(err));
-            var rows
+        var querySelectSubjects = "SELECT today_goal, subject_goals FROM user_goals " 
+                                    + "WHERE reg_time < ? AND user_id = ? " 
+                                    + "ORDER BY id DESC LIMIT 1";
+        db.get().query(querySelectSubjects, [tomorrowTime, userId], function (err, rows) {
+            if (err) rejected(Error(err))
+            console.log(rows);
+
             //성공한 경우 인자값을 넘긴다.
             resolved(rows);
+
+        });
+    });
+}
+
+//ranking, highest, avg
+function getSubjectRanking(targetTime, userId, subjectId) {
+    return new Promise(function (resolved, rejected) {
+
+        var query = "SELECT user_id AS userId, SUM(term) AS total " +
+            "FROM histories " +
+            "WHERE DATE(start_point) = ? " +
+            "AND subject_id = ?"
+            "GROUP BY user_id " +
+            "HAVING user_id IN " +
+            "(SELECT id FROM user_accounts) " +
+            "ORDER BY total DESC";
+
+        db.get().query(query, [targetTime, subjectId], function (err, rows) {
+            if (err) rejected(Error(err));
+
+
+            //나의 랭킹을 찾기전 미리 꼴등으로 설정해놓는다.
+            //만약 rows에 내 기록이 없는 경우에는 꼴지로 해야되니까 미리 해놓음
+            var ranking = rows.length;
+            var totalTerm = 0;
+            //나의 공부시간 등수를 찾는다. (DESC 정렬이기에 바로 가능)
+            for (var i in rows) {
+                if (rows[i].userId == userId) {
+                    ranking = parseInt(i) + 1;
+                    break;
+                }
+            }
+
+            //총합 계산
+            for (var i in rows) {
+                //console.log(rows[i]);
+                totalTerm += rows[i].total;
+            }
+
+            var highestTime = rows[0].total;
+            var averageTime = totalTerm / rows.length;
+            var rankingResult = {
+                ranking: ranking,
+                highestTime: highestTime,
+                averageTime: averageTime
+            }
+
+            resolved(rankingResult);
         });
     });
 }
 
 //1일치 정보(총공부시간,목표달성률,연속집중력) 불러오기
 //req: targetTime, userId
-router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
+router.get('/loadDayStatOld', isAuthenticated, function (req, res, next) {
     var tomorrowTime = moment(req.query.targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
 
     //SELECT common
@@ -273,7 +272,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 
     
-    db.get().query(querySelectHistories, [req.query.targetTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, tomorrowTime], function (err, rows1) {
+    db.get().query(querySelectHistories, [tomorrowTime, req.query.userId, req.query.userId, req.query.userId, req.query.userId, req.query.targetTime], function (err, rows1) {
         if (err) return res.status(400).send(err);
             
         db.get().query(querySelectHistories2, [req.query.userId, req.query.userId, req.query.targetTime], function (err, rows2) {
@@ -313,17 +312,6 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
                
 
-                //2.1. 랭킹
-                var querySelectHistories2 = "SELECT user_id, SUM(term) AS total FROM histories " +
-                    "WHERE exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) " +
-                    "AND DATE(end_point) = ? GROUP BY user_id " +
-                    "HAVING user_id in (SELECT id FROM user_accounts) ORDER BY total DESC";
-
-
-
-
-
-
                 var loadDayStatResult = {
                     total: total,
                     goal: goal,
@@ -343,50 +331,138 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 });
 
-//loadDayStat 과목 쪽 개발 중
-router.get('/loadDayStatNew', isAuthenticated, function (req, res, next) {
+//NEW
+//REQ: targetTime, userId
+router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     var targetTime = req.query.targetTime;
     var userId = req.query.userId;
+    var rows1, rows2, rows3;
+    var ranking, subjectRanking;
+    var goal;
 
-    var subjectIds;
-    var termResult;
-    var subjectGoals;
-    var avgmax;
-
-    getExamAvg(targetTime, userId).then(function(data, rejected) {
-        console.log(data);
-        
-        
+    //기존쿼리 3개
+    loadDayStatQuery1(targetTime, userId).then(function(data) {
+        rows1 = data;
+        return loadDayStatQuery2(targetTime, userId)
     })
-    .catch(function(err) {
-        console.log(err);
-    });
-
-    // selectSubjectIds(userId).then(function(data) {
-    //     subjectIds = data;
-    //     return selectSubjectTerm(targetTime, userId)
-    // })
-    // .then(function(data) {
-    //     termResult = data;
-    //     return selectSubjectGoals(targetTime, userId);
-    // })
-    // .then(function(data) {
-    //     subjectGoals = data;
-    //     return selectSubjectMax(targetTime, 908);
-    // })
-    // .then(function(data) {
-    //    avgmax = data;
-    //    console.log(avgmax);
-       
-    // })
-    // .then(()=> {
-    //     //console.log(subjectGoals);
+    .then(function(data) {
+        rows2 = data;
+        return loadDayStatQuery3(rows1[0].subjectIds)
+    })
+    .then(function(data) {
+        rows3 = data;
+        return getMyRanking(targetTime, userId)
+    }).then(function(data) {
+        ranking = data;
+        return getMyGoals(targetTime, userId)
+    }).then(function (data) {
+        goal = data;
+    })
+    .then(()=> {
+        //#1. subjects
+        //subjectId
+        var subjects = [];
+        var subjectIds = rows1[0].subjectIds;
+        var subjectIdsArray = subjectIds.split(",");
+      
+        //subjectGoals
+        //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
+        var subjectGoals = goal[0].subject_goals.split(",");
+        //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
+        var subjectGoals2 =[];
+        for(var i=0; i<subjectGoals.length; i++) {
+            subjectGoals2[i] = subjectGoals[i].split(":");
+        }
         
-    //     //console.log(result);
-    // })
+        //#1.1. subjects.totals
+        var totals = [];
+        for (var i = 0; i < subjectIdsArray.length; i++) {
+            var terms = [0, 0, 0, 0];
+            for (var j = 0; j < rows2.length; j++) {
+                if (subjectIdsArray[i] == rows2[j].subject_id) {
+                    terms[rows2[j].study_id] += rows2[j].term;
+                }
+            }
+            totals.push(terms);
+        }
 
-    
-    
+        
+        
+        for (var i = 0; i < subjectIdsArray.length; i++) {
+            var subjectGoal;
+            //#1.2. subjects.goal
+            //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
+            for (var j = 0; j < subjectGoals2.length; j++) {
+                if (subjectIdsArray[i] == subjectGoals2[j][0]) {
+                    subjectGoal = subjectGoals2[j][1];
+                    break;
+                } else {
+                    subjectGoal = 0;
+                }
+            }
+            var subject = {
+                id: subjectIdsArray[i],
+                name: rows3[i].title,
+                color: -100000,
+                totals: totals[i], 
+                goal: subjectGoal,
+                ranking: 1,
+                averageTime: 0,
+                highestTime: 0
+            }
+            subjects.push(subject);
+        }
+
+
+
+
+        ///////////////////////////////기존 그래프
+        var names = [];
+        for (var i = 0; i < rows3.length; i++) {
+            names.push(rows3[i].title);
+        }
+
+        for (var i = 0; i < subjectIdsArray.length; i++) {
+            var terms = [0, 0, 0, 0];
+            for (var j = 0; j < rows2.length; j++) {
+                if (subjectIdsArray[i] == rows2[j].subject_id) {
+                    terms[rows2[j].study_id] += rows2[j].term;
+                }
+            }
+            totals.push(terms);
+        }
+
+        var subject = {
+            totals: totals,
+            names: names
+        }
+        //////////////////기존 그래프
+
+        //#2. loadDayStat
+        var total = rows1[0].total == null ? 0 : rows1[0].total;
+        var todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
+        var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
+        var achievementRate = rows1[0].total == null ? 0 : total / goal.todayGoal * 100;
+        var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
+
+        var loadDayStatResult = {
+            total: total,
+            goal: todayGoal,
+            achievementRate: achievementRate,
+            continuousConcentration: continuousConcentration,
+            averageTime: ranking.averageTime,
+            highestTime: ranking.highestTime,
+            ranking: ranking.ranking,
+            subjects: subjects,
+            //기존 graph 예외처리
+            subject: subject
+        }
+        res.status(200).send(loadDayStatResult);
+      
+    }).catch(function (err) {
+        console.log(err);
+        return res.status(400).send(err);
+    });
 });
 
 
@@ -586,3 +662,60 @@ router.get('/timeline', isAuthenticated, function (req, res, next) {
 
 
 module.exports = router;
+
+
+function selectSubjectIds(userId) {
+    return new Promise(function (resolved, rejected) {
+        var querySelectHistories = "SELECT subject_ids FROM user_settings WHERE user_id = ?";
+        db.get().query(querySelectHistories, userId, function (err, rows) {
+            if (err) rejected(Error(err))
+            //성공한 경우 인자값을 넘긴다.
+            resolved(rows);
+
+        });
+    });
+}
+
+function selectSubjectTerm(targetTime, userId) {
+    return new Promise(function (resolved, rejected) {
+        var querySelectHistories = "SELECT h.subject_id, SUM(h.term) AS term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?" +
+            " AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
+            " AND DATE(h.end_point) = ? GROUP BY h.subject_id ORDER BY h.subject_id";
+        db.get().query(querySelectHistories, [userId, userId, targetTime], function (err, rows) {
+            if (err) rejected(Error(err))
+            //성공한 경우 인자값을 넘긴다.
+
+            resolved(rows);
+            //return rows2;
+        });
+    });
+}
+
+function selectSubjectGoals(targetTime, userId) {
+    return new Promise(function (resolved, rejected) {
+        var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
+        var querySelectHistories = "SELECT subject_goals FROM user_goals WHERE user_id = ? AND DATE(reg_time) < ? ORDER BY id DESC LIMIT 1"
+        db.get().query(querySelectHistories, [userId, tomorrowTime], function (err, rows) {
+            if (err) rejected(Error(err))
+
+            //성공한 경우 인자값을 넘긴다.
+            resolved(rows);
+        });
+    });
+}
+
+function selectSubjectAvg(targetTime, subjectId) {
+    return new Promise(function (resolved, rejected) {
+
+        var querySelectHistories = "SELECT user_id, SUM(term) as term FROM histories " +
+            "WHERE DATE(end_point) = ? AND subject_id = ? " +
+            "GROUP BY user_id"; +
+        "ORDER BY term DESC";
+        db.get().query(querySelectHistories, [targetTime, subjectId], function (err, rows) {
+            if (err) rejected(Error(err));
+            var rows
+            //성공한 경우 인자값을 넘긴다.
+            resolved(rows);
+        });
+    });
+}
