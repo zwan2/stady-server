@@ -16,7 +16,7 @@ var db = require('../config/db');
 var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 var nodemailer = require('nodemailer');
 var crypto = require('crypto');
-var stopwatch = require('./stopwatch');
+var Promise = require('promise');
 
 global.crypted = function (password) {
   const cipher = crypto.createCipher('aes-256-cbc', 'travrpropic');
@@ -305,6 +305,62 @@ router.post('/changeInformation', isAuthenticated, function (req, res, next) {
 
 });
 
+function selectSubjectColors(userId) {
+  return new Promise(function (resolved, rejected) {
+   var querySelectSubjects = "SELECT subject_colors FROM user_settings "
+                              +"WHERE user_id = ?";
+
+    db.get().query(querySelectSubjects, userId, function (err, rows) {
+      if (err) rejected(Error(err))
+      console.log(rows);
+
+      //성공한 경우 인자값을 넘긴다.
+      resolved(rows);
+
+    });
+  });
+}
+function updateSubjectColors(userId, updateColors) {
+  return new Promise(function (resolved, rejected) {
+    var querySelectSubjects = "UPDATE user_settings SET subject_colors = ? "
+                                +"WHERE user_id = ?";
+
+    db.get().query(querySelectSubjects, [updateColors, userId], function (err, rows) {
+      if (err) rejected(Error(err))
+      //성공한 경우 인자값을 넘긴다.
+      resolved(rows);
+
+    });
+  });
+}
+// REQ: userId, index, color
+router.post('/changeSubjectColor', isAuthenticated, function (req, res, next) {
+  var userId = req.body.userId;
+  var index = req.body.index;
+  var color = req.body.color;
+
+  var subjectColors = new Array();
+  selectSubjectColors(userId)
+  .then(function(data) {
+    subjectColors = data[0].subject_colors.split(",");
+    for (var i in subjectColors) {
+      if (subjectColors[i] == color) {
+        subjectColors[i] = subjectColors[index];
+        break;
+      }
+    }
+    subjectColors[index] = color;
+
+    var updateColors = subjectColors.join(",");
+    return updateSubjectColors(userId, updateColors)
+  }).then(function (data) {
+    res.sendStatus(200);
+  }).catch(function (err) {
+    console.log(err);
+    return res.status(400).send(err);
+  });
+
+});
 
 /*
 //아직안씀~
