@@ -586,19 +586,12 @@ router.post('/setGoal', isAuthenticated, function (req, res, next) {
 router.post('/stop', isAuthenticated, function (req, res, next) {
     //var base_date = moment(req.body.endPoint, "YYYY-MM-DD");
     
-    var queryInsertHis = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
-    var queryDuplicateStat = "INSERT INTO statistics (user_id, exam_address, subject_id, study_id, today_total, base_date) VALUES (?, ?, ?, ?, ?, ?)"
-                                + "ON DUPLICATE KEY UPDATE today_total = today_total + ?"
+    var queryInsertHistories = "INSERT INTO histories (user_id, exam_address, subject_id, study_id, start_point, end_point, term) VALUES (?, ?, ?, ?, ?, ?, ?);";
 
-    db.get().query(queryInsertHis, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
+    db.get().query(queryInsertHistories, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.startPoint, req.body.endPoint, req.body.term], function (err, rows) {
         if (err) return res.status(400).send(err);
-        db.get().query(queryDuplicateStat, [req.body.userId, req.body.examAddress, req.body.subjectId, req.body.studyId, req.body.term, req.body.endPoint, req.body.term], function (err, rows) {
-            if (err) return res.status(400).send(err);
-
-            return res.sendStatus(200);
-        });
-               
-        
+        return res.sendStatus(200);
+    
     });
 
     
