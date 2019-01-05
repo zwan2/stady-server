@@ -106,15 +106,13 @@ function getUserSetting (userId) {
 function loadDayStatQuery1 (targetTime, userId) {
     return new Promise(function(resolved, rejected) {
         var querySelectHistories = "SELECT SUM(term) AS total, " +
-            "(SELECT subject_ids FROM user_settings WHERE user_id = ?) AS subjectIds, COUNT(term) term_count FROM histories WHERE user_id = ?" +
+            " COUNT(term) term_count FROM histories WHERE user_id = ?" +
             "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) AND DATE(end_point) = ?";
-        db.get().query(querySelectHistories, [targetTime, userId, userId, userId, userId, targetTime], function (err, rows1) {
+        db.get().query(querySelectHistories, [userId, userId, targetTime], function (err, rows1) {
             if (err) rejected(Error(err))
 
             //성공한 경우 인자값을 넘긴다.
-            resolved(rows1);
-            console.log(rows1);
-            
+            resolved(rows1[0]);  
             //return rows1;
         });
     });
@@ -382,10 +380,12 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         //////////////////기존 그래프
 
         //#2. loadDayStat
-        var total = rows1[0].total == null ? 0 : rows1[0].total;
+        console.log(rows1.total);
+        
+        var total = rows1.total == null ? 0 : rows1.total;
         var todayGoal = goal[0].today_goal == null ? 3600 : goal[0].today_goal;
-        var termCount = rows1[0].term_count == null ? 0 : rows1[0].term_count;
-        var achievementRate = rows1[0].total == null ? 0 : (total / goal[0].today_goal) * 100;
+        var termCount = rows1.term_count == null ? 0 : rows1.term_count;
+        var achievementRate = rows1.total == null ? 0 : (total / goal[0].today_goal) * 100;
         var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
         console.log(total);
         console.log(goal[0].today_goal);
