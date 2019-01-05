@@ -112,7 +112,9 @@ function loadDayStatQuery1 (targetTime, userId) {
             if (err) rejected(Error(err))
 
             //성공한 경우 인자값을 넘긴다.
-            resolved(rows1[0]);  
+            resolved(rows1[0]);
+            console.log(rows1[0]);
+              
             //return rows1;
         });
     });
@@ -209,7 +211,7 @@ function getMyGoals(targetTime, userId) {
                                     + "ORDER BY id DESC LIMIT 1";
         db.get().query(querySelectSubjects, [tomorrowTime, userId], function (err, rows) {
             if (err) rejected(Error(err))
-            console.log(rows);
+            //console.log(rows);
 
             //성공한 경우 인자값을 넘긴다.
             resolved(rows);
@@ -385,7 +387,11 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         var total = rows1.total == null ? 0 : rows1.total;
         var todayGoal = goal[0].today_goal == null ? 3600 : goal[0].today_goal;
         var termCount = rows1.term_count == null ? 0 : rows1.term_count;
-        var achievementRate = rows1.total == null ? 0 : (total / goal[0].today_goal) * 100;
+        console.log(total);
+        console.log(goal[0].today_goal);
+        
+        
+        var achievementRate = (rows1.total == null) ? 0 : (total / goal[0].today_goal) * 100;
         var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
         console.log(total);
         console.log(goal[0].today_goal);
