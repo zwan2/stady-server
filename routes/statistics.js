@@ -115,7 +115,6 @@ function loadDayStatQuery1 (targetTime, userId) {
             resolved(rows1[0]);
             console.log(rows1[0]);
               
-            //return rows1;
         });
     });
 }
@@ -168,36 +167,44 @@ function getMyRanking(targetTime, userId) {
         db.get().query(query, targetTime, function (err, rows) {
             if (err) rejected(Error(err));
             
-
-            //나의 랭킹을 찾기전 미리 꼴등으로 설정해놓는다.
-            //만약 rows에 내 기록이 없는 경우에는 꼴지로 해야되니까 미리 해놓음
-            var ranking = rows.length;
-            var totalTerm = 0;
-            //나의 공부시간 등수를 찾는다. (DESC 정렬이기에 바로 가능)
-            for (var i in rows) {
-                if (rows[i].userId == userId) {
-                    ranking = parseInt(i) + 1;
-                    break;
+            
+            if(rows.length == 0){
+                var rankingResult = {
+                    ranking: 1,
+                    highestTime: 0,
+                    averageTime: 0
                 }
-            }
+                resolved(rankingResult);
+            } else {
+                //나의 랭킹을 찾기전 미리 꼴등으로 설정해놓는다.
+                var ranking = rows.length;
+             
+                //나의 공부시간 등수를 찾는다. (DESC 정렬이기에 바로 가능)
+                for (var i in rows) {
+                    if (rows[i].userId == userId) {
+                        break;
+                    }
+                }
+                console.log(i);
+                ranking = parseInt(i)+1;
 
-            //총합 계산
-            for(var i in rows) {
-                //console.log(rows[i]);
-                totalTerm += rows[i].total;
-            }
-            console.log(rows[0]);
-            
-            var highestTime = rows[0].total;
-            var averageTime = parseInt(totalTerm / rows.length);
-            var rankingResult = {
-                ranking: ranking,
-                highestTime: highestTime,
-                averageTime: averageTime
-            }
-            
+                //총합 계산
+                var totalTerm = 0;
+                for(var i in rows) {
+                    //console.log(rows[i]);
+                    totalTerm += rows[i].total;
+                }
 
-            resolved(rankingResult);
+                //1등, 평균 계산
+                var highestTime = rows[0].total;
+                var averageTime = parseInt(totalTerm / rows.length);
+                var rankingResult = {
+                    ranking: ranking,
+                    highestTime: highestTime,
+                    averageTime: averageTime
+                }
+                resolved(rankingResult);
+            }
         });
     });
 }
@@ -405,9 +412,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             averageTime: ranking.averageTime,
             highestTime: ranking.highestTime,
             ranking: ranking.ranking,
-            subjects: subjects,
-            //기존 graph 예외처리
-            subject: subject
+            subjects: subjects
         }
         res.status(200).send(loadDayStatResult);
       
@@ -455,80 +460,6 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
     
     });
 
-});
-
-//기획이 먼저 필요하다
-//현재 테이블로 해결 가능.
-//1. 내 랭킹, 총 유저, 평균 공부시간
-router.get('/loadRanking', isAuthenticated, function (req, res, next) {
-    var result;
-    //내 등수 
-    var querySelectRanking = "SELECT COUNT(*)+1 AS ranking FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)" +
-                            " AND today_total > (SELECT SUM(today_total) FROM statistics WHERE user_id = ?)";
-    //총 유저 수
-    var querySelectTotal = "SELECT COUNT(*) AS total_user FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)";
-    //유저 평균
-    var querySelectRankingAll = "SELECT subject_id, study_id, SUM(today_total) AS today_total FROM statistics WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?) GROUP BY subject_id, study_id";
-    var querySelectSubject = "SELECT title FROM subjects WHERE exam_address = (SELECT exam_address FROM user_settings WHERE user_id = ?)";
-
-    db.get().query(querySelectRanking, [req.query.userId, req.query.userId, req.query.userId], function (err, rows1) {
-        if (err) return res.status(400).send(err);
-        db.get().query(querySelectTotal, req.query.userId, function (err, rows2) {
-            if (err) return res.status(400).send(err);
-            db.get().query(querySelectRankingAll, req.query.userId, function (err, rows3) {
-                if (err) return res.status(400).send(err);
-                db.get().query(querySelectSubject, req.query.userId, function (err, rows4) {
-                    if (err) return res.status(400).send(err);
-                    //result = rows1[0];
-                    console.log(rows1[0]);
-                    console.log(rows2);           
-                    console.log(rows3);
-                    //console.log(rows4);
-                    
-                    
-                    var names = [],
-                        totals = [];
-                    for (var i = 0; i < rows4.length; i++) {
-                        names.push(rows4[i].title);
-                    }
-                    
-                    for (var i = 0; i < rows3.length; i++) {
-                        var terms = [0, 0, 0, 0];
-                        /*
-                        for (var j = 0; j < rows2.length; j++) {
-                            if (subjectIds[i] == rows4[j].subject_id) {
-                                terms[rows4[j].study_id] += rows4[j].today_total;
-                            }
-                        }*/
-                        //console.log(rows3[i].study_id);
-                        if(rows3[i].study_id != undefined) {
-                            terms[rows3[i].study_id] = rows3[i].today_total;
-                            totals.push(terms);
-
-                        }
-                        //var id = rows3[i].study_id;
-                    }
-
-                    var subject = {
-                        totals: totals,
-                        names: names
-                    }
-                    return subject;
-
-                    
-                    result = {
-                        //퍼센트 랭킹(서비스 규모 커지면 도입)
-                        //ranking: rows1[0].ranking / rows2[0].total_user,
-                        ranking: rows1[0].ranking,
-                        totalUser: rows2[0].total_user,
-                        avgT : rows2[0].total_time/rows2[0].total_user
-                    }
-                    return res.status(200).send(result);
-             
-                });
-            });
-        });
-    });
 });
 
 //1일치 정보 Timeline 불러오기
