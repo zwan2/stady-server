@@ -33,7 +33,7 @@ router.get('/getGroup', function (req, res, next) {
     const groupId = req.query.groupId;
 
     //Select Row
-    var querySelectGroups = "SELECT id, title, content, visibility, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE id = ?";
+    var querySelectGroups = "SELECT id, title, content, visibility, password, color, emoji, master_id AS masterId, user_ids AS userIds FROM groups WHERE id = ?";
     db.get().query(querySelectGroups, groupId, function (err, rows) {  
         if (err) return res.status(400).send(err);
 
