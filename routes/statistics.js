@@ -17,15 +17,15 @@ function loadRank(avgT, avgAR, avgCC) {
 }
 
 function getTotalScore(total) {
-    if (total >= 12 * 3600) {
+    if (total >= 10 * 3600) {
         return 10;
-    } else if (total >= 10 * 3600) {
-        return 9;
     } else if (total >= 8 * 3600) {
+        return 9;
+    } else if (total >= 6 * 3600) {
         return 8;
-    } else if (total >= 6 > 3600) {
+    } else if (total >= 5 > 3600) {
         return 7;
-    } else if (total >= 4 * 3600) {
+    } else if (total >= 3 * 3600) {
         return 6;
     } else if (total >= 2 * 3600) {
         return 5;
@@ -48,40 +48,40 @@ function getAchievementRateScore(ar) {
     } else if (ar >= 40) {
         return 5;
     } else {
-        return 0;
+        return 4;
     }
 }
 
 function getContinuousConcentrationScore(cc) {
-    if (cc >= 2 * 3600) {
+    if (cc >= 1.0 * 3600) {
         return 10;
-    } else if (cc >= 1.5 * 3600) {
+    } else if (cc >= 0.8 * 3600) {
         return 9;
-    } else if (cc >= 1.25 * 3600) {
+    } else if (cc >= 0.6 * 3600) {
         return 8;
-    } else if (cc >= 1 * 3600) {
+    } else if (cc >= 0.4 * 3600) {
         return 7;
-    } else if (cc >= 0.75 * 3600) {
+    } else if (cc >= 0.2 * 3600) {
         return 6;
-    } else if (cc >= 0.5 * 3600) {
+    } else if (cc >= 0.1 * 3600) {
         return 5;
     } else {
-        return 0;
+        return 4;
     }
 }
 
 function getRank(score) {
-    if (score >= 27) {
+    if (score >= 24) {
         return "A+";
-    } else if (score >= 24) {
-        return "A";
     } else if (score >= 21) {
-        return "B+";
+        return "A";
     } else if (score >= 18) {
+        return "B+";
+    } else if (score >= 16) {
         return "B";
-    } else if (score >= 15) {
+    } else if (score >= 14) {
         return "C+";
-    } else if (score >= 13) {
+    } else if (score >= 12) {
         return "C";
     } else {
         return "F";
@@ -166,7 +166,6 @@ function getMyRanking(targetTime, userId) {
 
         db.get().query(query, targetTime, function (err, rows) {
             if (err) rejected(Error(err));
-            
             
             if(rows.length == 0){
                 var rankingResult = {
@@ -422,11 +421,10 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     });
 });
 
-
+//REQ: userId
 router.get('/loadRank', isAuthenticated, function (req, res, next) {
     var userId = req.query.userId;
     var nowDate = moment().tz("Asia/Seoul");
-
 
     var selectMonthlyTotal = "SELECT SUM(term) AS total, " +
                                     "COUNT(term) AS count_term, " +
@@ -446,8 +444,14 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
             var duration = moment.duration(moment(rows2[0].endDate).diff(rows2[0].startDate));
             
             var avgT = rows1[0].total / duration._data.days;
-            var avgAR = rows1[0].total / rows1[0].goal;
+            var avgAR = rows1[0].total / rows1[0].goal * 100;
             var avgCC = rows1[0].total / rows1[0].count_term;
+            console.log(rows1[0]);
+            
+            console.log(avgT);
+            console.log(avgAR);
+            console.log(avgCC);
+            
             
             var result = {
                 rank: loadRank(avgT, avgAR, avgCC),
