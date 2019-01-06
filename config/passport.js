@@ -105,6 +105,38 @@ module.exports = function (passport) {
         });
     }));
 
+    passport.use('admin-login', new LocalStrategy({
+        usernameField: 'email',
+        passwordField: 'password',
+        passReqToCallback: true
+    }, function (req, email, password, done) {
+        
+        //암호화
+        var EncryptedPassword = crypted(password);
+        
+        var sqlSelectUsers = "SELECT id FROM user_accounts WHERE account_id = ? AND account_pw = ?";
+        db.get().query(sqlSelectUsers, [email, EncryptedPassword], function (err, rows1) {
+            if(err) {
+                return done(err);
+            }
+            //실패
+            else if (rows1[0] == undefined) {
+                return done(false, null);
+            } 
+            else {
+                //성공
+                if (rows1[0].id == 177) {
+                    return done(null, {
+                        id: rows1[0].id
+                    });
+                }
+                //superuser가 아님
+                else return done(false, null);
+            }
+        });
+       }
+    ));
+
     passport.use('local-join', new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password',

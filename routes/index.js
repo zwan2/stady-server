@@ -2,6 +2,7 @@ var express = require('express');
 var fs = require('fs');
 var router = express.Router();
 var path = require('path');
+var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 
 var db = require('../config/db');
 var moment = require('moment');
@@ -93,6 +94,28 @@ router.get('/privacyPolicy', function (req, res, next ){
   res.render('privacyPolicy');
 });
 
+router.get('/admin', isLoggedIn, function(req, res, next) {
+  res.render('admin');
+});
+
+router.get('/login', function (req, res, next ){
+  res.render('admin/login');
+});
+
+router.post('/login',
+  passport.authenticate('admin-login', {
+    successRedirect : '/admin', 
+    failureRedirect : '/admin', //로그인 실패시 redirect할 url주소
+    failureFlash : true
+  }));
+
+function isLoggedIn(req, res, next) {
+  if (req.isAuthenticated()) {
+      return next();
+  } else {
+      res.redirect('/login');
+  }
+}
 
 router.get('/versionHistory', function (req, res, next) {
   var querySelectLanding = "SELECT version_real, changes, updated_at FROM landing ORDER BY id DESC";
