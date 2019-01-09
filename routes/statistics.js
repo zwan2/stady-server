@@ -139,7 +139,9 @@ function loadDayStatQuery2(targetTime, userId) {
 //기존 쿼리3
 function loadDayStatQuery3(subjectIds) {
     return new Promise(function (resolved, rejected) {
-        
+        if(subjectIds == undefined) {
+            resolved(null);
+        }
         var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + subjectIds + ")";
         db.get().query(querySelectSubjects, function (err, rows3) {  
             if (err) rejected(Error(err))
@@ -291,7 +293,6 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     .then(function(data) {
         rows1 = data;
         console.log(userSettings[0]);
-        
         return loadDayStatQuery2(targetTime, userId)
     })
     .then(function(data) {
@@ -314,15 +315,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         var subjectIds = userSettings[0].subject_ids.split(",");
         var subjectColors = userSettings[0].subject_colors.split(",");
 
-        //subjectGoals
-        //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
-        var subjectGoals = goal[0].subject_goals.split(",");
-        //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
-        var subjectGoals2 =[];
-        for(var i=0; i<subjectGoals.length; i++) {
-            subjectGoals2[i] = subjectGoals[i].split(":");
-        }
-        
+
         //#1.1. subjects.totals
         var totals = [];
         for (var i = 0; i < subjectIds.length; i++) {
@@ -335,25 +328,42 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             totals.push(terms);
         }
 
-        
-        
+        // #1.2. subjectGoals
+        //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
+        if(goal[0].subject_goals == undefined) {
+            var subjectGoals = null;
+
+        } else {
+            var subjectGoals = goal[0].subject_goals.split(",");
+            //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
+            var subjectGoals2 =[];
+            for(var i=0; i<subjectGoals.length; i++) {
+                subjectGoals2[i] = subjectGoals[i].split(":");
+            }
+        }    
+
         for (var i = 0; i < subjectIds.length; i++) {
             var subjectGoal;
             //#1.2. subjects.goal
             //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
-            for (var j = 0; j < subjectGoals2.length; j++) {
-                if (subjectIds[i] == subjectGoals2[j][0]) {
-                    subjectGoal = subjectGoals2[j][1];
-                    break;
-                } else {
-                    subjectGoal = 0;
+            if(subjectGoals == null) {
+                subjectGoal = 0;
+            } else {
+                for (var j = 0; j < subjectGoals2.length; j++) {
+                    if (subjectIds[i] == subjectGoals2[j][0]) {
+                        subjectGoal = subjectGoals2[j][1];
+                        break;
+                    } else {
+                        subjectGoal = 0;
+                    }
                 }
             }
+         
             var subject = {
                 id: subjectIds[i],
                 name: rows3[i].title,
                 color: subjectColors[i],
-                totals: totals[i], 
+                totals: totals[i],
                 goal: subjectGoal,
                 ranking: 1,
                 averageTime: 0,
@@ -361,31 +371,9 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             }
             subjects.push(subject);
         }
-
-
-
-
-        ///////////////////////////////기존 그래프
-        var names = [];
-        for (var i = 0; i < rows3.length; i++) {
-            names.push(rows3[i].title);
-        }
-
-        for (var i = 0; i < subjectIds.length; i++) {
-            var terms = [0, 0, 0, 0];
-            for (var j = 0; j < rows2.length; j++) {
-                if (subjectIds[i] == rows2[j].subject_id) {
-                    terms[rows2[j].study_id] += rows2[j].term;
-                }
-            }
-            totals.push(terms);
-        }
-
-        var subject = {
-            totals: totals,
-            names: names
-        }
-        //////////////////기존 그래프
+     
+        
+        
 
         //#2. loadDayStat
         console.log(rows1.total);
