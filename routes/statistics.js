@@ -454,26 +454,77 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 
 });
 
-//1일치 정보 Timeline 불러오기
-//req: targetTime, userId
-router.get('/timeline', isAuthenticated, function (req, res, next) {
-    var targetTime = req.query.targetTime;
-    var userId = req.query.userId;
-    
-    var querySelectHistories = "SELECT exam_address, subject_id, study_id, start_point, end_point, term FROM histories"
-                                +" WHERE user_id = ? AND start_point >= ?";
-    
-    db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
-        if (err) return res.status(400).send(err);
-        
-        return res.status(200).send(rows);
+//1일치 정보 Raw Data 불러오기
+//req: userId, year, month, date
+router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
+    var userId = req.params.userId;
+    var year = req.params.year;
+    var month = req.params.month;
+    var date = req.params.date;
+
+
+    //String typed targetTime 만들기
+    getStringDate(year, month, date)
+    .then(function(targetTime) {
+        //DB query
+        return getRawData(userId, targetTime);
+    })
+    .then(function(data) {
+        //쿼리 결과 값에서 startPoint와 endPoint를 Timestamp 변환하자
+        for (var i in data) {
+            data[i].startPoint = getTimeStamp(data[i].startPoint);
+            data[i].endPoint = getTimeStamp(data[i].endPoint);
+        }
+
+        res.status(200).send(data);
+    })
+    .catch(function(err) {
+        console.log(err);
+        return res.status(400).send(err);
     });
 
 });
 
+function getStringDate(year, month, date) {
+    return new Promise(function (resolved, rejected) {
+        var result = moment().format();
+        result = moment().set('year', year);
+        result = moment().set('month', month);
+        result = moment().set('date', date);
+        result = moment().startOf('date');
+
+        resolved(result.format('YYYY-MM-DD'));
+    });
+}
+
+function getTimeStamp(from) {
+    return moment(from).valueOf();
+}
+
+function getRawData(userId, targetTime) {
+    return new Promise(function (resolved, rejected) {
+        var querySelectHistories = "SELECT id, " +
+                                    "exam_address AS examAddress, " +
+                                    "subject_id AS subjectId, " +
+                                    "study_id AS studyId, " +
+                                    "start_point AS startPoint, " +
+                                    "end_point AS endPoint, " +
+                                    "term " +
+                                    "FROM histories " +
+                                    "WHERE user_id = ? AND start_point >= ? " +
+                                    "ORDER BY id DESC";
+        
+        db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
+            if (err) rejected(Error(err));
+            if (rows.length == 0) rejected(Error('No Data'));
+            console.log(this.sql);
+            
+            return resolved(rows);
+        });
+    });
+}
 
 
-module.exports = router;
 
 
 function selectSubjectIds(userId) {
@@ -531,3 +582,7 @@ function selectSubjectAvg(targetTime, subjectId) {
         });
     });
 }
+
+
+
+module.exports = router;
