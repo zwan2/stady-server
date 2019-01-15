@@ -458,6 +458,7 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 //1일치 정보 Raw Data 불러오기
 //req: userId, year, month, date
 //지금까지 get은 req.query로 전송하고 있었는데 req.params가 편함?
+//아뇨 딱히 그런건 아닌데, 이 리퀘스트는 날짜 조회하는거니까 구조상 이렇게쓰는게 더 편하죠.
 router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
     var userId = req.params.userId;
     var year = req.params.year;
@@ -472,7 +473,7 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
         return getRawData(userId, targetTime);
     })
     .then(function(data) {
-        //쿼리 결과 값에서 startPoint와 endPoint를 Timestamp 변환하자
+        //쿼리 결과 값에서 startPoint와 endPoint를 Timestamp로 변환하자
         for (var i in data) {
             data[i].startPoint = getTimeStamp(data[i].startPoint);
             data[i].endPoint = getTimeStamp(data[i].endPoint);
@@ -520,13 +521,12 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
                                         "end_point AS endPoint, " +
                                         "term " +
                                         "FROM histories " +
-                                        "WHERE user_id = ? AND start_point = ? " +
+                                        "WHERE user_id = ? AND DATE(start_point) = ? " +
                                         "ORDER BY id DESC";
             
             db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
                 if (err) rejected(Error(err));
                 if (rows.length == 0) rejected(Error('No Data'));
-                console.log(this.sql);
                 
                 return resolved(rows);
             });
