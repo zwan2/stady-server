@@ -491,12 +491,11 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
 
     function getStringDate(year, month, date) {
         return new Promise(function (resolved, rejected) {
-            var result = moment().format();
+            var result = moment().format()
             result = moment().set('year', year);
             result = moment().set('month', month);
             result = moment().set('date', date);
-            result = moment().startOf('date');
-
+            
             resolved(result.format('YYYY-MM-DD'));
         });
     }
@@ -527,7 +526,7 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
             db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
                 if (err) rejected(Error(err));
                 if (rows.length == 0) rejected(Error('No Data'));
-                
+
                 return resolved(rows);
             });
         });
