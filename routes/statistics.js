@@ -75,13 +75,13 @@ function getRank(score) {
         return "A+";
     } else if (score >= 21) {
         return "A";
-    } else if (score >= 18) {
+    } else if (score >= 20) {
         return "B+";
-    } else if (score >= 16) {
+    } else if (score >= 18) {
         return "B";
-    } else if (score >= 14) {
+    } else if (score >= 16) {
         return "C+";
-    } else if (score >= 12) {
+    } else if (score >= 14) {
         return "C";
     } else {
         return "F";
