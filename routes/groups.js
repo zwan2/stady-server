@@ -198,7 +198,7 @@ router.get('/getRecentGroups', function (req, res, next) {
     
     //SELECT * from groups WHERE NOT FIND_IN_SET('143', user_ids) ORDER BY id DESC
     var querySelectGroup = "SELECT id, title, content, visibility, color, emoji, user_ids AS userIds, master_id AS masterId " +
-                            "FROM groups WHERE NOT FIND_IN_SET(" + "?" + ", user_ids) ORDER BY id DESC";
+                            "FROM groups WHERE NOT FIND_IN_SET(" + "?" + ", user_ids) ORDER BY id DESC LIMIT 20";
 
     db.get().query(querySelectGroup, [userId], function (err, rows) {
         if (err) return res.status(400).send(err);
