@@ -190,6 +190,28 @@ router.get('/search', function (req, res, next) {
     });
 });
 
+//최근에 열린 그룹 추천
+//REQ: userId(본인이 가입한 그룹 제외)
+router.get('/getRecentGroups', function (req, res, next) {
+    //REQ
+    var userId = req.query.userId;
+    
+    //SELECT * from groups WHERE NOT FIND_IN_SET('143', user_ids) ORDER BY id DESC
+    var querySelectGroup = "SELECT id, title, content, visibility, color, emoji, user_ids AS userIds, master_id AS masterId " +
+                            "FROM groups WHERE NOT FIND_IN_SET(" + "?" + ", user_ids) ORDER BY id DESC";
+
+    db.get().query(querySelectGroup, [userId], function (err, rows) {
+        if (err) return res.status(400).send(err);
+
+        //Count the number of users in each group.
+        for (var i in rows) {
+            rows[i].userCount = getUserCount(rows[i].userIds);
+        }
+        
+        return res.status(200).send(rows);
+    });
+});
+
 
 //그룹 가입
 //REQ: userId, groupId, password(default: '')
