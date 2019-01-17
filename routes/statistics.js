@@ -118,8 +118,11 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             return getMyGoals(targetTime, userId)
         }).then(function (data) {
             goal = data;
+            return getAverageGoalTemp(targetTime);
+        }).then(function (data) {
+            averageGoal = data;
         })
-        .then(() => {
+        .then(() => {        
             //#1. subjects
             //subjectId
             var subjects = [];
@@ -187,30 +190,30 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 
             //#2. loadDayStat
-            console.log(rows1.total);
-
             var total = rows1.total == null ? 0 : rows1.total;
             var todayGoal = goal[0].today_goal == null ? 3600 : goal[0].today_goal;
             var termCount = rows1.term_count == null ? 0 : rows1.term_count;
-            console.log(total);
-            console.log(goal[0].today_goal);
-
+          
 
             var achievementRate = (rows1.total == null) ? 0 : (total / goal[0].today_goal) * 100;
             var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
-            console.log(total);
-            console.log(goal[0].today_goal);
-
 
             var loadDayStatResult = {
+                //그래프
+                subjects: subjects,
+
+                //나와의 비교
                 total: total,
                 goal: todayGoal,
                 achievementRate: achievementRate,
                 continuousConcentration: continuousConcentration,
-                averageTime: ranking.averageTime,
-                highestTime: ranking.highestTime,
+
+                //타인과의 비교
                 ranking: ranking.ranking,
-                subjects: subjects
+                totalUser: ranking.totalUser,
+                avaerageGoal: averageGoal,
+                highestTime: ranking.highestTime,
+                averageTime: ranking.averageTime
             }
             res.status(200).send(loadDayStatResult);
 
@@ -229,7 +232,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
                 //성공한 경우 인자값을 넘긴다.
                 resolved(rows);
-                console.log(rows);
+                //console.log(rows);
 
                 //return rows1;
             });
@@ -267,7 +270,6 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             });
         });
     }
-
     //기존 쿼리3
     function loadDayStatQuery3(subjectIds) {
         return new Promise(function (resolved, rejected) {
@@ -408,6 +410,24 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             });
         });
     }
+    function getAverageGoalTemp(targetTime) {
+        return new Promise(function (resolved, rejected) {
+            var querySelectGoals = "SELECT AVG(today_goal) AS averageGoal " +
+                "FROM user_goals " +
+                "WHERE reg_time <= ?";
+
+
+            db.get().query(querySelectGoals, targetTime, function (err, rows) {
+                if (err) rejected(Error(err));
+
+                if (rows.length == 0) rejected(Error('No Data'));
+                //console.log(this.sql);
+                var averageGoal = parseInt(rows[0].averageGoal);
+                return resolved(averageGoal);
+            });
+        });
+    }
+    
 
 
 //REQ: userId
@@ -458,7 +478,6 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 //1일치 정보 Raw Data 불러오기
 //req: userId, year, month, date
 //지금까지 get은 req.query로 전송하고 있었는데 req.params가 편함?
-//아뇨 딱히 그런건 아닌데, 이 리퀘스트는 날짜 조회하는거니까 구조상 이렇게쓰는게 더 편하죠.
 router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
     var userId = req.params.userId;
     var year = req.params.year;
@@ -473,7 +492,7 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
         return getRawData(userId, targetTime);
     })
     .then(function(data) {
-        //쿼리 결과 값에서 startPoint와 endPoint를 Timestamp로 변환하자
+        //쿼리 결과 값에서 startPoint와 endPoint를 Timestamp 변환하자
         for (var i in data) {
             data[i].startPoint = getTimeStamp(data[i].startPoint);
             data[i].endPoint = getTimeStamp(data[i].endPoint);
@@ -491,11 +510,12 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
 
     function getStringDate(year, month, date) {
         return new Promise(function (resolved, rejected) {
-            var result = moment().format()
+            var result = moment().format();
             result = moment().set('year', year);
             result = moment().set('month', month);
             result = moment().set('date', date);
-            
+            result = moment().startOf('date');
+
             resolved(result.format('YYYY-MM-DD'));
         });
     }
@@ -520,27 +540,31 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
                                         "end_point AS endPoint, " +
                                         "term " +
                                         "FROM histories " +
-                                        "WHERE user_id = ? AND DATE(start_point) = ? " +
+                                        "WHERE user_id = ? AND start_point = ? " +
                                         "ORDER BY id DESC";
             
             db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
                 if (err) rejected(Error(err));
                 if (rows.length == 0) rejected(Error('No Data'));
-
+                console.log(this.sql);
+                
                 return resolved(rows);
             });
         });
     }
 
-//REQ: targetTime
-router.get('/getAvergeGoal', isAuthenticated, function (req, res, next) {
-    var userId = req.query.userId;
-
-    //String typed targetTime 만들기
-
-});
 
 
+
+
+
+
+
+
+
+
+
+    
     //해당 날짜의 최근 3일 공부한 user들
     function getRecentStudyUsers(targetTime) {
         return new Promise(function (resolved, rejected) {
@@ -579,7 +603,6 @@ router.get('/getAvergeGoal', isAuthenticated, function (req, res, next) {
             });
         });
     }
-
 
 module.exports = router;
 
