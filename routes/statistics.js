@@ -526,12 +526,15 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
     var year = req.params.year;
     var month = req.params.month;
     var date = req.params.date;
-
+  
+    
 
     //String typed targetTime 만들기
     getStringDate(year, month, date)
     .then(function(targetTime) {
         //DB query
+        console.log("a"+targetTime);
+        
         return getRawData(userId, targetTime);
     })
     .then(function(data) {
@@ -557,7 +560,7 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
             result = moment().set('year', year);
             result = moment().set('month', month);
             result = moment().set('date', date);
-            result = moment().startOf('date');
+            //result = moment().startOf('date');
 
             resolved(result.format('YYYY-MM-DD'));
         });
@@ -583,12 +586,12 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
                                         "end_point AS endPoint, " +
                                         "term " +
                                         "FROM histories " +
-                                        "WHERE user_id = ? AND start_point = ? " +
+                                        "WHERE user_id = ? AND DATE(start_point) = ? " +
                                         "ORDER BY id DESC";
             
             db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
                 if (err) rejected(Error(err));
-                if (rows.length == 0) rejected(Error('No Data'));
+                if (rows.length == 0) return resolved(null);
                 console.log(this.sql);
                 
                 return resolved(rows);
