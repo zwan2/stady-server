@@ -92,18 +92,26 @@ function getRank(score) {
 router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     var targetTime = req.query.targetTime;
     var userId = req.query.userId;
-    var rows1, rows2, rows3;
+    var total, termCount;
+    var rows2, rows3;
     var ranking, subjectRanking;
     var goal;
     var userSettings;
     //기존쿼리 3개
     getUserSetting(userId).then(function (data) {
             userSettings = data;
-            return loadDayStatQuery1(targetTime, userId)
+            //return loadDayStatQuery1(targetTime, userId)
+            return getTotal(targetTime, userId)
         })
         .then(function (data) {
-            rows1 = data;
-            console.log(userSettings[0]);
+            total = data;
+            console.log("a:"+total);
+            
+            return getTermCount(targetTime, userId)
+        })
+        .then(function (data) {
+            termCount = data;
+            //console.log(userSettings[0]);
             return loadDayStatQuery2(targetTime, userId)
         })
         .then(function (data) {
@@ -190,12 +198,12 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 
             //#2. loadDayStat
-            var total = rows1.total == null ? 0 : rows1.total;
             var todayGoal = goal[0].today_goal == null ? 3600 : goal[0].today_goal;
-            var termCount = rows1.term_count == null ? 0 : rows1.term_count;
+            if(total == null) total = 0;
+            if(termCount == null) termCount = 0;
           
 
-            var achievementRate = (rows1.total == null) ? 0 : (total / goal[0].today_goal) * 100;
+            var achievementRate = (total == null) ? 0 : (total / goal[0].today_goal) * 100;
             var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
 
             var loadDayStatResult = {
@@ -222,7 +230,6 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             return res.status(400).send(err);
         });
 });
-    //기존 쿼리1
     function getUserSetting (userId) {
         return new Promise(function (resolved, rejected) {
             var querySelectHistories = "SELECT subject_ids, subject_colors FROM user_settings " +
@@ -238,6 +245,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             });
         });
     }
+    //deleted
     function loadDayStatQuery1 (targetTime, userId) {
         return new Promise(function(resolved, rejected) {
             var querySelectHistories = "SELECT SUM(term) AS total, " +
@@ -253,6 +261,43 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             });
         });
     }
+    function getTotal(targetTime, userId) {
+        return new Promise(function (resolved, rejected) {
+            var querySelectHistories = "SELECT SUM(term) AS total " +
+                "FROM histories WHERE user_id = ? " +
+                "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) " +
+                "AND DATE(end_point) = ?";
+            db.get().query(querySelectHistories, [userId, userId, targetTime], function (err, row) {
+                if (err) rejected(Error(err))
+
+                //성공한 경우 인자값을 넘긴다.
+                resolved(row[0].total);
+                console.log(row[0].total);
+
+            });
+        });
+    }
+
+    function getTermCount (targetTime, userId) {
+        return new Promise(function(resolved, rejected) {
+            var termLimit = 60;
+            var querySelectHistories = "SELECT COUNT(term) AS termCount FROM histories " +
+                "WHERE term > ? " + 
+                "AND user_id = ? " +
+                "AND DATE(end_point) = ? " 
+                "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)";
+            
+                db.get().query(querySelectHistories, [termLimit, userId, targetTime, userId], function (err, row) {
+                if (err) rejected(Error(err))
+
+                //성공한 경우 인자값을 넘긴다.
+                resolved(row[0].termCount);
+                //console.log("a:"+row[0].termCount);
+                
+            });
+        });
+    }
+
     //기존 쿼리2
     function loadDayStatQuery2(targetTime, userId) {
         return new Promise(function (resolved, rejected) {
@@ -263,8 +308,6 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 if (err) rejected(Error(err))
 
                 //성공한 경우 인자값을 넘긴다.
-                //console.log(rows2);
-                
                 resolved(rows2);
 
             });
