@@ -92,34 +92,33 @@ function getRank(score) {
 router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
     var targetTime = req.query.targetTime;
     var userId = req.query.userId;
-    var total, termCount;
-    var rows2, rows3;
-    var ranking, subjectRanking;
+    
+    var total, pauseCount;
+    var totalBySubjectAndStudy, subjectTitles;
+    var ranking;
     var goal;
     var userSettings;
+    var subjectIds, subjectColors;
+
     //기존쿼리 3개
     getUserSetting(userId).then(function (data) {
             userSettings = data;
-            //return loadDayStatQuery1(targetTime, userId)
             return getTotal(targetTime, userId)
         })
         .then(function (data) {
             total = data;
-            console.log("a:"+total);
-            
-            return getTermCount(targetTime, userId)
+            return getPauseCount(targetTime, userId)
         })
         .then(function (data) {
-            termCount = data;
-            //console.log(userSettings[0]);
-            return loadDayStatQuery2(targetTime, userId)
+            pauseCount = data;
+            return getTotalBySubjectAndStudy(targetTime, userId)
         })
         .then(function (data) {
-            rows2 = data;
-            return loadDayStatQuery3(userSettings[0].subject_ids)
+            totalBySubjectAndStudy = data;
+            return getSubjectTitle(userSettings.subject_ids)
         })
         .then(function (data) {
-            rows3 = data;
+            subjectTitles = data;
             return getMyRanking(targetTime, userId)
         }).then(function (data) {
             ranking = data;
@@ -132,19 +131,19 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         })
         .then(() => {        
             //#1. subjects
-            //subjectId
+            //subjectId, colors
             var subjects = [];
-            var subjectIds = userSettings[0].subject_ids.split(",");
-            var subjectColors = userSettings[0].subject_colors.split(",");
+            subjectIds = userSettings.subject_ids.split(",");
+            subjectColors = userSettings.subject_colors.split(",");
 
 
             //#1.1. subjects.totals
             var totals = [];
             for (var i = 0; i < subjectIds.length; i++) {
                 var terms = [0, 0, 0, 0];
-                for (var j = 0; j < rows2.length; j++) {
-                    if (subjectIds[i] == rows2[j].subject_id) {
-                        terms[rows2[j].study_id] += rows2[j].term;
+                for (var j = 0; j < totalBySubjectAndStudy.length; j++) {
+                    if (subjectIds[i] == totalBySubjectAndStudy[j].subject_id) {
+                        terms[totalBySubjectAndStudy[j].study_id] += totalBySubjectAndStudy[j].term;
                     }
                 }
                 totals.push(terms);
@@ -152,11 +151,11 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
             // #1.2. subjectGoals
             //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
-            if (goal[0].subject_goals == undefined) {
+            if (goal.subject_goals == undefined) {
                 var subjectGoals = null;
 
             } else {
-                var subjectGoals = goal[0].subject_goals.split(",");
+                var subjectGoals = goal.subject_goals.split(",");
                 //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
                 var subjectGoals2 = [];
                 for (var i = 0; i < subjectGoals.length; i++) {
@@ -183,7 +182,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
                 var subject = {
                     id: subjectIds[i],
-                    name: rows3[i].title,
+                    name: subjectTitles[i].title,
                     color: subjectColors[i],
                     totals: totals[i],
                     goal: subjectGoal,
@@ -198,13 +197,11 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
 
 
             //#2. loadDayStat
-            var todayGoal = goal[0].today_goal == null ? 3600 : goal[0].today_goal;
+            var todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
             if(total == null) total = 0;
-            if(termCount == null) termCount = 0;
-          
-
-            var achievementRate = (total == null) ? 0 : (total / goal[0].today_goal) * 100;
-            var continuousConcentration = termCount == 0 ? 0 : parseInt(total / termCount);
+            if(pauseCount == null) pauseCount = 0;
+            var achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
+            var continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
 
             var loadDayStatResult = {
                 //그래프
@@ -221,7 +218,18 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 totalUser: ranking.totalUser,
                 avaerageGoal: averageGoal,
                 highestTime: ranking.highestTime,
-                averageTime: ranking.averageTime
+                averageTime: ranking.averageTime,
+
+                //DailyReport
+                pauseCount: pauseCount,
+                //check again
+                percentage: achievementRate,
+                achievementRate: 0,
+                startTime: 34123450,
+                endTime: 34123450,
+                rank: "A+",
+                raws: []
+
             }
             res.status(200).send(loadDayStatResult);
 
@@ -238,7 +246,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 if (err) rejected(Error(err))
 
                 //성공한 경우 인자값을 넘긴다.
-                resolved(rows);
+                resolved(rows[0]);
                 //console.log(rows);
 
                 //return rows1;
@@ -278,10 +286,10 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
         });
     }
 
-    function getTermCount (targetTime, userId) {
+    function getPauseCount (targetTime, userId) {
         return new Promise(function(resolved, rejected) {
             var termLimit = 60;
-            var querySelectHistories = "SELECT COUNT(term) AS termCount FROM histories " +
+            var querySelectHistories = "SELECT COUNT(term) AS pauseCount FROM histories " +
                 "WHERE term > ? " + 
                 "AND user_id = ? " +
                 "AND DATE(end_point) = ? " 
@@ -291,15 +299,15 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 if (err) rejected(Error(err))
 
                 //성공한 경우 인자값을 넘긴다.
-                resolved(row[0].termCount);
-                //console.log("a:"+row[0].termCount);
+                resolved(row[0].pauseCount);
+                //console.log("a:"+row[0].pauseCount);
                 
             });
         });
     }
 
-    //기존 쿼리2
-    function loadDayStatQuery2(targetTime, userId) {
+    //과목.공부방법별 공부시간 
+    function getTotalBySubjectAndStudy(targetTime, userId) {
         return new Promise(function (resolved, rejected) {
             var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?" +
                 " AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
@@ -313,8 +321,8 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
             });
         });
     }
-    //기존 쿼리3
-    function loadDayStatQuery3(subjectIds) {
+    //getSubjectTitle
+    function getSubjectTitle(subjectIds) {
         return new Promise(function (resolved, rejected) {
             if(subjectIds == undefined) {
                 resolved(null);
@@ -400,7 +408,7 @@ router.get('/loadDayStat', isAuthenticated, function (req, res, next) {
                 //console.log(rows);
 
                 //성공한 경우 인자값을 넘긴다.
-                resolved(rows);
+                resolved(rows[0]);
 
             });
         });
@@ -520,7 +528,6 @@ router.get('/loadRank', isAuthenticated, function (req, res, next) {
 
 //1일치 정보 Raw Data 불러오기
 //req: userId, year, month, date
-//지금까지 get은 req.query로 전송하고 있었는데 req.params가 편함?
 router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
     var userId = req.params.userId;
     var year = req.params.year;
@@ -591,7 +598,7 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
             
             db.get().query(querySelectHistories, [userId, targetTime], function (err, rows) {
                 if (err) rejected(Error(err));
-                if (rows.length == 0) return resolved(null);
+                if (rows.length == 0) return resolved([]);
                 console.log(this.sql);
                 
                 return resolved(rows);
