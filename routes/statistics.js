@@ -87,34 +87,55 @@ function getRank(score) {
         return "F";
     }
 }
-//NEW
-//REQ: userId, targetTime
+
+//subjectIds -> subjectTitle
+function getSubjectTitle(subjectIds) {
+    return new Promise(function (resolved, rejected) {
+        if (subjectIds == undefined) {
+            resolved(null);
+        }
+        var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + subjectIds + ")";
+        db.get().query(querySelectSubjects, function (err, rows3) {
+            if (err) rejected(Error(err))
+            //console.log(rows3);
+
+            //성공한 경우 인자값을 넘긴다.
+            resolved(rows3);
+
+        });
+    });
+}
+
+//REQ: userId, year, month, date
+//통계 페이지 데이터 전부 불러오기(유저 아이디별, 날짜별)
 router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
 
-    var userId = req.params.userId;
-    var year = req.params.year;
-    var month = req.params.month;
-    var date = req.params.date;
+    let userId = req.params.userId;
+    let year = req.params.year;
+    let month = req.params.month;
+    let date = req.params.date;
 
-    var targetTime;
-    var total, pauseCount;
-    var totalBySubjectAndStudy, subjectTitles;
-    var ranking;
-    var goal;
-    var userSettings;
-    var subjectIds, subjectColors;
-    var raws;
+    let targetTime;
+    let userSettings;
+    let total;
+    let pauseCount;
+    let totalBySubjectAndStudy;
+    let subjectTitles;
+    let ranking;
+    let goal;
+    let averageGoal;
+    let raws;
 
     //String typed targetTime 만들기
     getStringDate(year, month, date)
         .then(function (data) {
             targetTime = data;
-            console.log("uid"+userId+"targetTime"+targetTime);
-            
+   
             return getUserSetting(userId)
         })
         .then(function (data) {
             userSettings = data;
+         
             return getTotal(userId, targetTime)
         })
         .then(function (data) {
@@ -144,81 +165,83 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
         }).then(function (data) {
             raws = data;
         })
-        .then(() => {        
-            //#1. subjects
-            //subjectId, colors
-            var subjects = [];
-            subjectIds = userSettings.subject_ids.split(",");
-            subjectColors = userSettings.subject_colors.split(",");
+        .then(() => {
 
-
-            //#1.1. subjects.totals
-            var totals = [];
-            for (var i = 0; i < subjectIds.length; i++) {
-                var terms = [0, 0, 0, 0];
-                for (var j = 0; j < totalBySubjectAndStudy.length; j++) {
-                    if (subjectIds[i] == totalBySubjectAndStudy[j].subject_id) {
-                        terms[totalBySubjectAndStudy[j].study_id] += totalBySubjectAndStudy[j].term;
-                    }
-                }
-                totals.push(terms);
-            }
-
-            // #1.2. subjectGoals
-            //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
-            if (goal.subject_goals == undefined) {
-                var subjectGoals = null;
-
-            } else {
-                var subjectGoals = goal.subject_goals.split(",");
-                //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
-                var subjectGoals2 = [];
-                for (var i = 0; i < subjectGoals.length; i++) {
-                    subjectGoals2[i] = subjectGoals[i].split(":");
-                }
-            }
-
-            for (var i = 0; i < subjectIds.length; i++) {
-                var subjectGoal;
-                //#1.2. subjects.goal
-                //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
-                if (subjectGoals == null) {
-                    subjectGoal = 0;
-                } else {
-                    for (var j = 0; j < subjectGoals2.length; j++) {
-                        if (subjectIds[i] == subjectGoals2[j][0]) {
-                            subjectGoal = subjectGoals2[j][1];
-                            break;
-                        } else {
-                            subjectGoal = 0;
+            //#1. subjects 객체 (graph)를 만드는 함수
+            function userSettingsAndGoalToSubjects(userSettings, goal) {
+                let subjects = [];
+                let subjectIds = userSettings.subject_ids.split(",");
+                let subjectColors = userSettings.subject_colors.split(",");
+                let subjectGoal, subjectGoals, subjectGoals2 = [];
+                //#1.1. subjects.totals
+                let totals = [];
+                for (let i = 0; i < subjectIds.length; i++) {
+                    let terms = [0, 0, 0, 0];
+                    for (let j = 0; j < totalBySubjectAndStudy.length; j++) {
+                        if (subjectIds[i] == totalBySubjectAndStudy[j].subject_id) {
+                            terms[totalBySubjectAndStudy[j].study_id] += totalBySubjectAndStudy[j].term;
                         }
                     }
+                    totals.push(terms);
                 }
 
-                var subject = {
-                    id: subjectIds[i],
-                    name: subjectTitles[i].title,
-                    color: subjectColors[i],
-                    totals: totals[i],
-                    goal: subjectGoal,
-                    ranking: 1,
-                    averageTime: 0,
-                    highestTime: 0
+                // #1.2. subjectGoals
+                //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
+                if (goal.subject_goals == undefined) {
+                    subjectGoals = null;
+
+                } else {
+                    subjectGoals = goal.subject_goals.split(",");
+                    //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
+                    for (let i = 0; i < subjectGoals.length; i++) {
+                        subjectGoals2[i] = subjectGoals[i].split(":");
+                    }
                 }
-                subjects.push(subject);
+                for (let i = 0; i < subjectIds.length; i++) {
+
+                    //#1.2. subjects.goal
+                    //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
+                    if (subjectGoals == null) {
+                        subjectGoal = 0;
+                    } else {
+                        for (let j = 0; j < subjectGoals2.length; j++) {
+                            if (subjectIds[i] == subjectGoals2[j][0]) {
+                                subjectGoal = subjectGoals2[j][1];
+                                break;
+                            } else {
+                                subjectGoal = 0;
+                            }
+                        }
+                    }
+
+                    let subject = {
+                        id: subjectIds[i],
+                        name: subjectTitles[i].title,
+                        color: subjectColors[i],
+                        totals: totals[i],
+                        goal: subjectGoal,
+                        ranking: 1,
+                        averageTime: 0,
+                        highestTime: 0
+                    }
+                    subjects.push(subject);
+                }
+                return subjects;
             }
+            let subjects = userSettingsAndGoalToSubjects(userSettings, goal);
 
+            //#2.1. 나와의비교
+            if (total == null) total = 0;
+            if (pauseCount == null) pauseCount = 0;
+            let todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
+            let achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
+            let continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
 
+            //#2.2.DailyReport
+            let startTime = raws == null ? getTimeStamp(raws[raws.length - 1].startPoint) : 0;
+            let endTime = raws == null ? getTimeStamp(raws[0].endPoint) : 0;
 
-
-            //#2. loadDayStat
-            var todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
-            if(total == null) total = 0;
-            if(pauseCount == null) pauseCount = 0;
-            var achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
-            var continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
-
-            var loadDayStatResult = {
+            let loadDayStatResult = {
                 //그래프
                 subjects: subjects,
 
@@ -237,15 +260,15 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
 
                 //DailyReport
                 pauseCount: pauseCount,
-                percentile: ranking.ranking/ranking.totalUser,
-                startTime: raws[raws.length - 1].startPoint,
-                endTime: raws[0].endPoint,
+                percentile: ranking.ranking / ranking.totalUser,
+                startTime: startTime,
+                endTime: endTime,
                 rank: "A+",
                 raws: raws
 
 
             }
-            console.log(raws[0]);
+            //console.log(raws[0]);
             res.status(200).send(loadDayStatResult);
 
         }).catch(function (err) {
@@ -253,10 +276,11 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             return res.status(400).send(err);
         });
 });
-    function getUserSetting (userId) {
+    function getUserSetting(userId) {
         return new Promise(function (resolved, rejected) {
-            var querySelectHistories = "SELECT subject_ids, subject_colors FROM user_settings " +
-                                        "WHERE user_id = ?"
+            let querySelectHistories = "SELECT subject_ids, subject_colors " +
+                "FROM user_settings " +
+                "WHERE user_id = ?"
             db.get().query(querySelectHistories, [userId], function (err, rows) {
                 if (err) rejected(Error(err))
 
@@ -271,37 +295,40 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
 
     function getTotal(userId, targetTime) {
         return new Promise(function (resolved, rejected) {
-            var querySelectHistories = "SELECT SUM(term) AS total " +
+            let querySelectHistories = "SELECT SUM(term) AS total " +
                 "FROM histories WHERE user_id = ? " +
                 "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) " +
                 "AND DATE(end_point) = ?";
+                console.log(userId);
+                
             db.get().query(querySelectHistories, [userId, userId, targetTime], function (err, row) {
                 if (err) rejected(Error(err))
 
                 //성공한 경우 인자값을 넘긴다.
+                console.log(row[0]);
                 resolved(row[0].total);
-                console.log(row[0].total);
+                
 
             });
         });
     }
 
-    function getPauseCount (userId, targetTime) {
-        return new Promise(function(resolved, rejected) {
-            var termLimit = 60;
-            var querySelectHistories = "SELECT COUNT(term) AS pauseCount FROM histories " +
-                "WHERE term > ? " + 
+    function getPauseCount(userId, targetTime) {
+        return new Promise(function (resolved, rejected) {
+            let termLimit = 60;
+            let querySelectHistories = "SELECT COUNT(term) AS pauseCount FROM histories " +
+                "WHERE term > ? " +
                 "AND user_id = ? " +
-                "AND DATE(end_point) = ? " 
-                "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)";
-            
-                db.get().query(querySelectHistories, [termLimit, userId, userId, targetTime], function (err, row) {
+                "AND DATE(end_point) = ? "
+            "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)";
+
+            db.get().query(querySelectHistories, [termLimit, userId, userId, targetTime], function (err, row) {
                 if (err) rejected(Error(err))
 
                 //성공한 경우 인자값을 넘긴다.
                 resolved(row[0].pauseCount);
                 //console.log("a:"+row[0].pauseCount);
-                
+
             });
         });
     }
@@ -309,7 +336,8 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
     //과목.공부방법별 공부시간 
     function getTotalBySubjectAndStudy(userId, targetTime) {
         return new Promise(function (resolved, rejected) {
-            var querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?" +
+            let querySelectHistories2 = "SELECT h.subject_id, h.study_id, h.term FROM histories AS h " +
+                "JOIN subjects AS s WHERE h.subject_id = s.id AND h.user_id = ?" +
                 " AND h.exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?)" +
                 " AND DATE(h.end_point) = ? ORDER BY h.subject_id, h.study_id";
             db.get().query(querySelectHistories2, [userId, userId, targetTime], function (err, rows2) {
@@ -321,29 +349,12 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             });
         });
     }
-    //getSubjectTitle
-    function getSubjectTitle(subjectIds) {
-        return new Promise(function (resolved, rejected) {
-            if(subjectIds == undefined) {
-                resolved(null);
-            }
-            var querySelectSubjects = "SELECT title FROM subjects WHERE id IN (" + subjectIds + ")";
-            db.get().query(querySelectSubjects, function (err, rows3) {  
-                if (err) rejected(Error(err))
-                //console.log(rows3);
-                
-                //성공한 경우 인자값을 넘긴다.
-                resolved(rows3);
-
-            });
-        });
-    }
 
     //ranking, totalUser, highest, avg
     function getMyRanking(userId, targetTime) {
         return new Promise(function (resolved, rejected) {
-             
-            var query = "SELECT user_id AS userId, SUM(term) AS total " +
+
+            let query = "SELECT user_id AS userId, SUM(term) AS total " +
                 "FROM histories " +
                 "WHERE DATE(start_point) = ? " +
                 "GROUP BY user_id " +
@@ -354,9 +365,9 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             db.get().query(query, targetTime, function (err, rows) {
                 if (err) rejected(Error(err));
                 //console.log(rows);
-                
-                if(rows.length == 0){
-                    var rankingResult = {
+
+                if (rows.length == 0) {
+                    let rankingResult = {
                         ranking: 1,
                         highestTime: 0,
                         averageTime: 0
@@ -364,8 +375,8 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
                     resolved(rankingResult);
                 } else {
                     //나의 랭킹을 찾기전 미리 꼴등으로 설정해놓는다.
-                    var ranking = rows.length;
-                
+                    let ranking = rows.length;
+
                     //나의 공부시간 등수를 찾는다. (DESC 정렬이기에 바로 가능)
                     for (var i in rows) {
                         if (rows[i].userId == userId) {
@@ -373,19 +384,19 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
                         }
                     }
                     console.log(i);
-                    ranking = parseInt(i)+1;
+                    ranking = parseInt(i) + 1;
 
                     //총합 계산
-                    var totalTerm = 0;
-                    for(var i in rows) {
+                    let totalTerm = 0;
+                    for (var i in rows) {
                         //console.log(rows[i]);
                         totalTerm += rows[i].total;
                     }
 
                     //1등, 평균 계산
-                    var highestTime = rows[0].total;
-                    var averageTime = parseInt(totalTerm / rows.length);
-                    var rankingResult = {
+                    let highestTime = rows[0].total;
+                    let averageTime = parseInt(totalTerm / rows.length);
+                    let rankingResult = {
                         ranking: ranking,
                         totalUser: rows.length,
                         highestTime: highestTime,
@@ -396,14 +407,15 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             });
         });
     }
+
     //today_goal, subject_goals
     function getMyGoals(userId, targetTime) {
         return new Promise(function (resolved, rejected) {
-            var tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
+            let tomorrowTime = moment(targetTime, "YYYY-MM-DD").add(1, 'day').format("YYYY-MM-DD");
 
-            var querySelectSubjects = "SELECT today_goal, subject_goals FROM user_goals " 
-                                        + "WHERE reg_time < ? AND user_id = ? " 
-                                        + "ORDER BY id DESC LIMIT 1";
+            let querySelectSubjects = "SELECT today_goal, subject_goals FROM user_goals "
+                + "WHERE reg_time < ? AND user_id = ? "
+                + "ORDER BY id DESC LIMIT 1";
             db.get().query(querySelectSubjects, [tomorrowTime, userId], function (err, rows) {
                 if (err) rejected(Error(err))
                 //console.log(rows);
@@ -415,56 +427,9 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
         });
     }
 
-    //ranking, highest, avg
-    function getSubjectRanking(userId, targetTime, subjectId) {
-        return new Promise(function (resolved, rejected) {
-
-            var query = "SELECT user_id AS userId, SUM(term) AS total " +
-                "FROM histories " +
-                "WHERE DATE(start_point) = ? " +
-                "AND subject_id = ?"
-                "GROUP BY user_id " +
-                "HAVING user_id IN " +
-                "(SELECT id FROM user_accounts) " +
-                "ORDER BY total DESC";
-
-            db.get().query(query, [targetTime, subjectId], function (err, rows) {
-                if (err) rejected(Error(err));
-
-
-                //나의 랭킹을 찾기전 미리 꼴등으로 설정해놓는다.
-                //만약 rows에 내 기록이 없는 경우에는 꼴지로 해야되니까 미리 해놓음
-                var ranking = rows.length;
-                var totalTerm = 0;
-                //나의 공부시간 등수를 찾는다. (DESC 정렬이기에 바로 가능)
-                for (var i in rows) {
-                    if (rows[i].userId == userId) {
-                        ranking = parseInt(i) + 1;
-                        break;
-                    }
-                }
-
-                //총합 계산
-                for (var i in rows) {
-                    //console.log(rows[i]);
-                    totalTerm += rows[i].total;
-                }
-
-                var highestTime = rows[0].total;
-                var averageTime = totalTerm / rows.length;
-                var rankingResult = {
-                    ranking: ranking,
-                    highestTime: highestTime,
-                    averageTime: averageTime
-                }
-
-                resolved(rankingResult);
-            });
-        });
-    }
     function getAverageGoalTemp(targetTime) {
         return new Promise(function (resolved, rejected) {
-            var querySelectGoals = "SELECT AVG(today_goal) AS averageGoal " +
+            let querySelectGoals = "SELECT AVG(today_goal) AS averageGoal " +
                 "FROM user_goals " +
                 "WHERE reg_time <= ?";
 
@@ -474,12 +439,12 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
 
                 if (rows.length == 0) rejected(Error('No Data'));
                 //console.log(this.sql);
-                var averageGoal = parseInt(rows[0].averageGoal);
+                let averageGoal = parseInt(rows[0].averageGoal);
                 return resolved(averageGoal);
             });
         });
     }
-    
+
     
 
 
@@ -565,12 +530,15 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
 
     function getStringDate(year, month, date) {
         return new Promise(function (resolved, rejected) {
-            var result = moment().format();
-            result = moment().set('year', year);
-            result = moment().set('month', month);
-            result = moment().set('date', date);
-            //result = moment().startOf('date');
-
+            
+            var result = moment({
+                year: year,
+                month: month-1,
+                date: date
+            });
+            //console.log(result);
+            
+            
             resolved(result.format('YYYY-MM-DD'));
         });
     }
