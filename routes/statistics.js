@@ -17,33 +17,33 @@ function loadRank(avgT, avgAR, avgCC) {
 }
 
 function getTotalScore(total) {
-    if (total >= 10 * 3600) {
+    if (total >= 9 * 3600) {
         return 10;
-    } else if (total >= 8 * 3600) {
-        return 9;
-    } else if (total >= 6 * 3600) {
+    } else if (total >= 7 * 3600) {
         return 8;
-    } else if (total >= 5 > 3600) {
-        return 7;
-    } else if (total >= 3 * 3600) {
+    } else if (total >= 5 * 3600) {
         return 6;
-    } else if (total >= 2 * 3600) {
+    } else if (total >= 4 > 3600) {
         return 5;
-    } else {
+    } else if (total >= 2 * 3600) {
         return 3;
+    } else if (total >= 1 * 3600) {
+        return 2;
+    } else {
+        return 0;
     }
 }
 
 function getAchievementRateScore(ar) {
-    if (ar >= 90) {
+    if (ar >= 100) {
         return 10;
-    } else if (ar >= 80) {
+    } else if (ar >= 95) {
         return 9;
-    } else if (ar >= 70) {
+    } else if (ar >= 90) {
         return 8;
-    } else if (ar >= 60) {
+    } else if (ar >= 80) {
         return 7;
-    } else if (ar >= 50) {
+    } else if (ar >= 70) {
         return 6;
     } else if (ar >= 40) {
         return 5;
@@ -53,35 +53,35 @@ function getAchievementRateScore(ar) {
 }
 
 function getContinuousConcentrationScore(cc) {
-    if (cc >= 1.0 * 3600) {
+    if (cc >= 1.6 * 3600) {
         return 10;
-    } else if (cc >= 0.8 * 3600) {
+    } else if (cc >= 1.4 * 3600) {
+        return 9.5;
+    } else if (cc >= 1.2 * 3600) {
         return 9;
-    } else if (cc >= 0.6 * 3600) {
+    } else if (cc >= 1.0 * 3600) {
+        return 8.5;
+    } else if (cc >= 0.8 * 3600) {
         return 8;
     } else if (cc >= 0.4 * 3600) {
         return 7;
-    } else if (cc >= 0.2 * 3600) {
-        return 6;
-    } else if (cc >= 0.1 * 3600) {
-        return 5;
     } else {
-        return 4;
+        return 6;
     }
 }
 
 function getRank(score) {
-    if (score >= 24) {
+    if (score >= 26) {
         return "A+";
-    } else if (score >= 21) {
+    } else if (score >= 24) {
         return "A";
-    } else if (score >= 20) {
+    } else if (score >= 22) {
         return "B+";
-    } else if (score >= 18) {
+    } else if (score >= 20) {
         return "B";
-    } else if (score >= 16) {
+    } else if (score >= 18) {
         return "C+";
-    } else if (score >= 14) {
+    } else if (score >= 16) {
         return "C";
     } else {
         return "F";
@@ -240,7 +240,9 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             //#2.2.DailyReport
             let startTime = raws == null ? getTimeStamp(raws[raws.length - 1].startPoint) : 0;
             let endTime = raws == null ? getTimeStamp(raws[0].endPoint) : 0;
-
+            let rankForDay = getRankForDay(total, pauseCount, todayGoal);
+            console.log(rankForDay);
+            
             let loadDayStatResult = {
                 //그래프
                 subjects: subjects,
@@ -263,7 +265,7 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
                 percentile: ranking.ranking / ranking.totalUser,
                 startTime: startTime,
                 endTime: endTime,
-                rank: "A+",
+                rank: rankForDay,
                 raws: raws
 
 
@@ -276,6 +278,21 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             return res.status(400).send(err);
         });
 });
+    //total, count, goal
+    function getRankForDay(total, pauseCount, goal) {
+        let avgT = total;
+        let avgAR = total / goal * 100;
+        let avgCC = total / pauseCount;
+        let rank = loadRank(avgT, avgAR, avgCC);
+        console.log(rank);
+        
+        if(rank == null) {
+            return "F";
+        } else {
+            return rank;
+        }
+    }
+
     function getUserSetting(userId) {
         return new Promise(function (resolved, rejected) {
             let querySelectHistories = "SELECT subject_ids, subject_colors " +
@@ -446,6 +463,7 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
     }
 
     
+
 
 
 //REQ: userId
