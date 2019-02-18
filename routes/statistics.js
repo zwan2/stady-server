@@ -288,10 +288,10 @@ function  _getUserSetting(userId) {
         "FROM user_settings " +
         "WHERE user_id = ?"
     
-    db.get().query(querySelectHistories, [userId], err, rows) => {
-        if (err) rejected(Error(err))
-        resolved(rows[0]);
-    };
+    // db.get().query(querySelectHistories, [userId], err, rows) {
+    //     if (err) rejected(Error(err))
+    //     resolved(rows[0]);
+    // };
 }
 
 function  _getTotal(userId, targetTime) {
