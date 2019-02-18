@@ -505,8 +505,13 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
             return getAverageGoalTemp(targetTime);
         }).then(function (data) {
             averageGoal = data;
-            return getRawData(userId, targetTime)
-        }).then(function (data) {
+            return getRawData(userId, targetTime);
+        }).then(function(data) {
+            //쿼리 결과 값에서 startPoint와 endPoint를 Timestamp 변환하자
+            for (var i in data) {
+                data[i].startPoint = getTimeStamp(data[i].startPoint);
+                data[i].endPoint = getTimeStamp(data[i].endPoint);
+            }
             raws = data;
         })
         .then(() => {
@@ -600,7 +605,7 @@ router.get('/getStatistics/:userId/:year/:month/:date', isAuthenticated, functio
                 //타인과의 비교
                 ranking: ranking.ranking,
                 totalUser: ranking.totalUser,
-                avaerageGoal: averageGoal,
+                averageGoal: averageGoal,
                 highestTime: ranking.highestTime,
                 averageTime: ranking.averageTime,
 
