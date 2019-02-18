@@ -9,7 +9,7 @@ var session = require('express-session');
 var passport = require('passport'),
   LocalStrategy = require('passport-local').Strategy;
 var flash = require('connect-flash');
-var schedule = require('node-schedule');
+
 
 
 //db
@@ -129,6 +129,7 @@ app.listen(80, function () {
 
 
 ///////// Firebase 삭제 구문 START ////////
+var cron = require('node-cron');
 const admin = require('firebase-admin');
 var serviceAccount = require('./firebase-key.json');
 admin.initializeApp({
@@ -136,10 +137,10 @@ admin.initializeApp({
 });
 var db = admin.firestore();
 
-var scheduler = schedule.scheduleJob('1 0 0 * * *', function () { 
+cron.schedule('1 0 0 * * *', function () {
   console.log('Firebase 삭제 시작');
 
-  deleteCollection(db, 'study', 1000).then(function() {
+  deleteCollection(db, 'study', 1000).then(function () {
     console.log('Firebase 삭제 끝');
     console.log('Firebase 추가 시작');
 
@@ -151,7 +152,25 @@ var scheduler = schedule.scheduleJob('1 0 0 * * *', function () {
     console.log('Firebase 추가 끝');
   });
 });
-scheduler;
+
+// var schedule = require('node-schedule');
+
+// var scheduler = schedule.scheduleJob('1 0 0 * * *', function () { 
+//   console.log('Firebase 삭제 시작');
+
+//   deleteCollection(db, 'study', 1000).then(function() {
+//     console.log('Firebase 삭제 끝');
+//     console.log('Firebase 추가 시작');
+
+//     var data = {
+//       test: 'test!'
+//     };
+//     db.collection('study').doc('test').set(data);
+
+//     console.log('Firebase 추가 끝');
+//   });
+// });
+// scheduler;
 
 function deleteCollection(db, collectionPath, batchSize) {
   var collectionRef = db.collection(collectionPath);
