@@ -106,152 +106,152 @@ function getSubjectTitle(subjectIds) {
     });
 }
 
-//REQ: userId, year, month, date
-//통계 페이지 데이터 전부 불러오기(유저 아이디별, 날짜별)
-router.get('/ES6_getStatistics/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
+// //REQ: userId, year, month, date
+// //통계 페이지 데이터 전부 불러오기(유저 아이디별, 날짜별)
+// router.get('/ES6_getStatistics/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
 
-    const userId = req.params.userId;
-    const year = req.params.year;
-    const month = req.params.month;
-    const date = req.params.date;
+//     const userId = req.params.userId;
+//     const year = req.params.year;
+//     const month = req.params.month;
+//     const date = req.params.date;
 
   
 
-    const targetTime = getStringDate(year, month, date);
+//     const targetTime = getStringDate(year, month, date);
 
-    const getStatistics = async (userId=0, targetTime='2018-01-01') => {
-        try {
-            const userSettings = _getUserSetting(userId);
-            const subjectTitles = getSubjectTitle(userSettings.subject_ids=0);
+//     const getStatistics = async (userId=0, targetTime='2018-01-01') => {
+//         try {
+//             const userSettings = _getUserSetting(userId);
+//             const subjectTitles = getSubjectTitle(userSettings.subject_ids=0);
 
-            let total = await _getTotal(userId, targetTime);
-            let pauseCount = await _getPauseCount(userId, targetTime);
-            const totalBySubjectAndStudy = await _getTotalBySubjectAndStudy(userId, targetTime);
-            const ranking = await _getMyranking(userId, targetTime);
-            const goal = await _getMyGoals(userId, targetTime);
-            const averageGoal = await _getAverageGoalTemp(targetTime);
-            const raws = await _getRawData(userId, targetTime);
+//             let total = await _getTotal(userId, targetTime);
+//             let pauseCount = await _getPauseCount(userId, targetTime);
+//             const totalBySubjectAndStudy = await _getTotalBySubjectAndStudy(userId, targetTime);
+//             const ranking = await _getMyranking(userId, targetTime);
+//             const goal = await _getMyGoals(userId, targetTime);
+//             const averageGoal = await _getAverageGoalTemp(targetTime);
+//             const raws = await _getRawData(userId, targetTime);
 
-            //#1. subjects 객체 (graph)를 만드는 함수
-            function _userSettingsAndGoalToSubjects(userSettings, goal) {
-                const subjectIds = userSettings.subject_ids.split(",");
-                const subjectColors = userSettings.subject_colors.split(",");
-                let subjects = [];
-                let subjectGoal, subjectGoals, subjectGoals2 = [];
+//             //#1. subjects 객체 (graph)를 만드는 함수
+//             function _userSettingsAndGoalToSubjects(userSettings, goal) {
+//                 const subjectIds = userSettings.subject_ids.split(",");
+//                 const subjectColors = userSettings.subject_colors.split(",");
+//                 let subjects = [];
+//                 let subjectGoal, subjectGoals, subjectGoals2 = [];
  
-                //#1.1. subjects.totals
-                let totals = [];
-                for (let i = 0; i < subjectIds.length; i++) {
-                    let terms = [0, 0, 0, 0];
-                    for (let j = 0; j < totalBySubjectAndStudy.length; j++) {
-                        if (subjectIds[i] == totalBySubjectAndStudy[j].subject_id) {
-                            terms[totalBySubjectAndStudy[j].study_id] += totalBySubjectAndStudy[j].term;
-                        }
-                    }
-                    totals.push(terms);
-                }
+//                 //#1.1. subjects.totals
+//                 let totals = [];
+//                 for (let i = 0; i < subjectIds.length; i++) {
+//                     let terms = [0, 0, 0, 0];
+//                     for (let j = 0; j < totalBySubjectAndStudy.length; j++) {
+//                         if (subjectIds[i] == totalBySubjectAndStudy[j].subject_id) {
+//                             terms[totalBySubjectAndStudy[j].study_id] += totalBySubjectAndStudy[j].term;
+//                         }
+//                     }
+//                     totals.push(terms);
+//                 }
 
-                // #1.2. subjectGoals
-                //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
-                if (goal.subject_goals == undefined) {
-                    subjectGoals = null;
+//                 // #1.2. subjectGoals
+//                 //996:10800,997:10800,998:14400 -> [996:10800, 997:10800, 998:14400]
+//                 if (goal.subject_goals == undefined) {
+//                     subjectGoals = null;
 
-                } else {
-                    subjectGoals = goal.subject_goals.split(",");
-                    //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
-                    for (let i = 0; i < subjectGoals.length; i++) {
-                        subjectGoals2[i] = subjectGoals[i].split(":");
-                    }
-                }
+//                 } else {
+//                     subjectGoals = goal.subject_goals.split(",");
+//                     //[996:10800, 997:10800, 998:14400] -> [996, 10800 / 997, 10800 /998, 14400]
+//                     for (let i = 0; i < subjectGoals.length; i++) {
+//                         subjectGoals2[i] = subjectGoals[i].split(":");
+//                     }
+//                 }
 
-                for (let i = 0; i < subjectIds.length; i++) {
+//                 for (let i = 0; i < subjectIds.length; i++) {
 
-                    //#1.2. subjects.goal
-                    //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
-                    if (subjectGoals == null) {
-                        subjectGoal = 0;
-                    } else {
-                        for (let j = 0; j < subjectGoals2.length; j++) {
-                            if (subjectIds[i] == subjectGoals2[j][0]) {
-                                subjectGoal = subjectGoals2[j][1];
-                                break;
-                            } else {
-                                subjectGoal = 0;
-                            }
-                        }
-                    }
+//                     //#1.2. subjects.goal
+//                     //(같은 subject_id로 등록된 goal이 있으면 넣고, 없으면 0)
+//                     if (subjectGoals == null) {
+//                         subjectGoal = 0;
+//                     } else {
+//                         for (let j = 0; j < subjectGoals2.length; j++) {
+//                             if (subjectIds[i] == subjectGoals2[j][0]) {
+//                                 subjectGoal = subjectGoals2[j][1];
+//                                 break;
+//                             } else {
+//                                 subjectGoal = 0;
+//                             }
+//                         }
+//                     }
 
-                    let subject = {
-                        id: subjectIds[i],
-                        name: subjectTitles[i].title,
-                        color: subjectColors[i],
-                        totals: totals[i],
-                        goal: subjectGoal,
-                        ranking: 1,
-                        averageTime: 0,
-                        highestTime: 0
-                    }
-                    subjects.push(subject);
-                }
-                return subjects;
-            }
-            const subjects = await _userSettingsAndGoalToSubjects(userSettings, goal);
+//                     let subject = {
+//                         id: subjectIds[i],
+//                         name: subjectTitles[i].title,
+//                         color: subjectColors[i],
+//                         totals: totals[i],
+//                         goal: subjectGoal,
+//                         ranking: 1,
+//                         averageTime: 0,
+//                         highestTime: 0
+//                     }
+//                     subjects.push(subject);
+//                 }
+//                 return subjects;
+//             }
+//             const subjects = await _userSettingsAndGoalToSubjects(userSettings, goal);
      
-            //#2.1. 나와의비교
-            if (total == null) total = 0;
-            if (pauseCount == null) pauseCount = 0;
-            const todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
-            const achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
-            const continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
+//             //#2.1. 나와의비교
+//             if (total == null) total = 0;
+//             if (pauseCount == null) pauseCount = 0;
+//             const todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
+//             const achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
+//             const continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
 
-            //#2.2.DailyReport
-            const startTime = raws == null ? getTimeStamp(raws[raws.length - 1].startPoint) : 0;
-            const endTime = raws == null ? getTimeStamp(raws[0].endPoint) : 0;
-            const rankForDay = getRankForDay(total, pauseCount, todayGoal);
+//             //#2.2.DailyReport
+//             const startTime = raws == null ? getTimeStamp(raws[raws.length - 1].startPoint) : 0;
+//             const endTime = raws == null ? getTimeStamp(raws[0].endPoint) : 0;
+//             const rankForDay = getRankForDay(total, pauseCount, todayGoal);
 
-            const loadDayStatResult = {
-                //그래프
-                subjects: subjects,
+//             const loadDayStatResult = {
+//                 //그래프
+//                 subjects: subjects,
 
-                //나와의 비교
-                total: total,
-                goal: todayGoal,
-                achievementRate: achievementRate,
-                continuousConcentration: continuousConcentration,
+//                 //나와의 비교
+//                 total: total,
+//                 goal: todayGoal,
+//                 achievementRate: achievementRate,
+//                 continuousConcentration: continuousConcentration,
 
-                //타인과의 비교
-                ranking: ranking.ranking,
-                totalUser: ranking.totalUser,
-                avaerageGoal: averageGoal,
-                highestTime: ranking.highestTime,
-                averageTime: ranking.averageTime,
+//                 //타인과의 비교
+//                 ranking: ranking.ranking,
+//                 totalUser: ranking.totalUser,
+//                 avaerageGoal: averageGoal,
+//                 highestTime: ranking.highestTime,
+//                 averageTime: ranking.averageTime,
 
-                //DailyReport
-                pauseCount: pauseCount,
-                percentile: ranking.ranking / ranking.totalUser,
-                startTime: startTime,
-                endTime: endTime,
-                rank: rankForDay,
-                raws: raws
-            }
-            res.status(200).send(loadDayStatResult);
+//                 //DailyReport
+//                 pauseCount: pauseCount,
+//                 percentile: ranking.ranking / ranking.totalUser,
+//                 startTime: startTime,
+//                 endTime: endTime,
+//                 rank: rankForDay,
+//                 raws: raws
+//             }
+//             res.status(200).send(loadDayStatResult);
 
-        } catch(err) {
-            console.log(err);
-            return res.status(400).send(err);
-        }
+//         } catch(err) {
+//             console.log(err);
+//             return res.status(400).send(err);
+//         }
         
        
-    }
+//     }
 
-    if(userId != null && targetTime != null) {
-        getStatistics(userId, targetTime);
-    } else {
-        console.log("no params!");
-        return res.sendStatus(400);
-    }
+//     if(userId != null && targetTime != null) {
+//         getStatistics(userId, targetTime);
+//     } else {
+//         console.log("no params!");
+//         return res.sendStatus(400);
+//     }
 
-}); 
+// }); 
 
 
 
