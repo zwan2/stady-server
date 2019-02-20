@@ -110,71 +110,35 @@ function getSubjectTitle(subjectIds) {
 //통계 페이지 데이터 전부 불러오기(유저 아이디별, 날짜별)
 router.get('/ES6_getStatistics/:userId/:year/:month/:date', isAuthenticated, function (req, res, next) {
 
-    let userId = req.params.userId;
-    let year = req.params.year;
-    let month = req.params.month;
-    let date = req.params.date;
+    const userId = req.params.userId;
+    const year = req.params.year;
+    const month = req.params.month;
+    const date = req.params.date;
 
-    let targetTime;
-    let userSettings;
-    let total;
-    let pauseCount;
-    let totalBySubjectAndStudy;
-    let subjectTitles;
-    let ranking;
-    let goal;
-    let averageGoal;
-    let raws;
+  
 
+    const targetTime = getStringDate(year, month, date);
 
+    const getStatistics = async (userId=0, targetTime='2018-01-01') => {
+        try {
+            const userSettings = _getUserSetting(userId);
+            const subjectTitles = getSubjectTitle(userSettings.subject_ids=0);
 
-    //String typed targetTime 만들기
-    getStringDate(year, month, date)
-        .then(function (data) {
-            targetTime = data;
-
-            return getUserSetting(userId)
-        })
-        .then(function (data) {
-            userSettings = data;
-
-            return getTotal(userId, targetTime)
-        })
-        .then(function (data) {
-            total = data;
-            return getPauseCount(userId, targetTime)
-        })
-        .then(function (data) {
-            pauseCount = data;
-            return getTotalBySubjectAndStudy(userId, targetTime)
-        })
-        .then(function (data) {
-            totalBySubjectAndStudy = data;
-            return getSubjectTitle(userSettings.subject_ids)
-        })
-        .then(function (data) {
-            subjectTitles = data;
-            return getMyRanking(userId, targetTime)
-        }).then(function (data) {
-            ranking = data;
-            return getMyGoals(userId, targetTime)
-        }).then(function (data) {
-            goal = data;
-            return getAverageGoalTemp(targetTime);
-        }).then(function (data) {
-            averageGoal = data;
-            return getRawData(userId, targetTime)
-        }).then(function (data) {
-            raws = data;
-        })
-        .then(() => {
+            let total = await _getTotal(userId, targetTime);
+            let pauseCount = await _getPauseCount(userId, targetTime);
+            const totalBySubjectAndStudy = await _getTotalBySubjectAndStudy(userId, targetTime);
+            const ranking = await _getMyranking(userId, targetTime);
+            const goal = await _getMyGoals(userId, targetTime);
+            const averageGoal = await _getAverageGoalTemp(targetTime);
+            const raws = await _getRawData(userId, targetTime);
 
             //#1. subjects 객체 (graph)를 만드는 함수
-            function userSettingsAndGoalToSubjects(userSettings, goal) {
+            function _userSettingsAndGoalToSubjects(userSettings, goal) {
+                const subjectIds = userSettings.subject_ids.split(",");
+                const subjectColors = userSettings.subject_colors.split(",");
                 let subjects = [];
-                let subjectIds = userSettings.subject_ids.split(",");
-                let subjectColors = userSettings.subject_colors.split(",");
                 let subjectGoal, subjectGoals, subjectGoals2 = [];
+ 
                 //#1.1. subjects.totals
                 let totals = [];
                 for (let i = 0; i < subjectIds.length; i++) {
@@ -199,6 +163,7 @@ router.get('/ES6_getStatistics/:userId/:year/:month/:date', isAuthenticated, fun
                         subjectGoals2[i] = subjectGoals[i].split(":");
                     }
                 }
+
                 for (let i = 0; i < subjectIds.length; i++) {
 
                     //#1.2. subjects.goal
@@ -230,22 +195,21 @@ router.get('/ES6_getStatistics/:userId/:year/:month/:date', isAuthenticated, fun
                 }
                 return subjects;
             }
-            let subjects = userSettingsAndGoalToSubjects(userSettings, goal);
-
+            const subjects = await _userSettingsAndGoalToSubjects(userSettings, goal);
+     
             //#2.1. 나와의비교
             if (total == null) total = 0;
             if (pauseCount == null) pauseCount = 0;
-            let todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
-            let achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
-            let continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
+            const todayGoal = goal.today_goal == null ? 3600 : goal.today_goal;
+            const achievementRate = (total == null) ? 0 : (total / goal.today_goal) * 100;
+            const continuousConcentration = pauseCount == 0 ? 0 : parseInt(total / pauseCount);
 
             //#2.2.DailyReport
-            let startTime = raws == null ? getTimeStamp(raws[raws.length - 1].startPoint) : 0;
-            let endTime = raws == null ? getTimeStamp(raws[0].endPoint) : 0;
-            let rankForDay = getRankForDay(total, pauseCount, todayGoal);
-            console.log(rankForDay);
+            const startTime = raws == null ? getTimeStamp(raws[raws.length - 1].startPoint) : 0;
+            const endTime = raws == null ? getTimeStamp(raws[0].endPoint) : 0;
+            const rankForDay = getRankForDay(total, pauseCount, todayGoal);
 
-            let loadDayStatResult = {
+            const loadDayStatResult = {
                 //그래프
                 subjects: subjects,
 
@@ -269,48 +233,61 @@ router.get('/ES6_getStatistics/:userId/:year/:month/:date', isAuthenticated, fun
                 endTime: endTime,
                 rank: rankForDay,
                 raws: raws
-
-
             }
-            //console.log(raws[0]);
             res.status(200).send(loadDayStatResult);
 
-        }).catch(function (err) {
+        } catch(err) {
             console.log(err);
             return res.status(400).send(err);
-        });
+        }
+        
+       
+    }
+
+    if(userId != null && targetTime != null) {
+        getStatistics(userId, targetTime);
+    } else {
+        console.log("no params!");
+        return res.sendStatus(400);
+    }
+
 }); 
 
 
 
 function  _getUserSetting(userId) {
-    const querySelectHistories = "SELECT subject_ids, subject_colors " +
-        "FROM user_settings " +
-        "WHERE user_id = ?"
-    
-    // db.get().query(querySelectHistories, [userId], err, rows) {
-    //     if (err) rejected(Error(err))
-    //     resolved(rows[0]);
-    // };
-}
-
-function  _getTotal(userId, targetTime) {
     return new Promise(function (resolved, rejected) {
-        let querySelectHistories = "SELECT SUM(term) AS total " +
-            "FROM histories WHERE user_id = ? " +
-            "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) " +
-            "AND DATE(end_point) = ?";
-        console.log(userId);
-
-        db.get().query(querySelectHistories, [userId, userId, targetTime], function (err, row) {
+        let querySelectHistories = "SELECT subject_ids, subject_colors " +
+            "FROM user_settings " +
+            "WHERE user_id = ?"
+        db.get().query(querySelectHistories, [userId], function (err, rows) {
             if (err) rejected(Error(err))
 
             //성공한 경우 인자값을 넘긴다.
-            console.log(row[0]);
-            resolved(row[0].total);
+            resolved(rows[0]);
+            //console.log(rows);
 
-
+            //return rows1;
         });
+    });
+}
+
+function  _getTotal(userId, targetTime) {
+    let querySelectHistories = "SELECT SUM(term) AS total " +
+        "FROM histories WHERE user_id = ? " +
+        "AND exam_address = (SELECT exam_address FROM user_settings d WHERE d.user_id = ?) " +
+        "AND DATE(end_point) = ?";
+    console.log(userId);
+
+    db.get().query(querySelectHistories, [userId, userId, targetTime], (row) => {
+        try {
+            console.log(row);
+            return row[0].total;
+        } catch (err) {
+
+
+            return err;
+        }
     });
 }
 
@@ -445,8 +422,6 @@ function  _getAverageGoalTemp(targetTime) {
         });
     });
 }
-
-
 
 
 //REQ: userId, year, month, date
@@ -868,8 +843,6 @@ router.get('/getRawData/:userId/:year/:month/:date', isAuthenticated, function (
     var month = req.params.month;
     var date = req.params.date;
   
-    
-
     //String typed targetTime 만들기
     getStringDate(year, month, date)
     .then(function(targetTime) {
