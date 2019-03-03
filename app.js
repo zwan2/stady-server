@@ -129,26 +129,25 @@ app.listen(80, function () {
 
 
 ///////// Firebase 삭제 구문 START ////////
-var cron = require('node-cron');
+const cron = require('node-cron');
 const admin = require('firebase-admin');
-var serviceAccount = require('./firebase-key.json');
+const serviceAccount = require('./firebase-key.json');
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
-var db = admin.firestore();
+const firestoreDB = admin.firestore();
 
-cron.schedule('* 0 0 * * *', function () {
+cron.schedule('* 0 0 * * *', () => {
   console.log('Firebase 삭제 시작');
 
-  deleteCollection(db, 'study', 1000).then(function () {
+  deleteCollection(firestoreDB, 'study', 1000, () => {
     console.log('Firebase 삭제 끝');
     console.log('Firebase 추가 시작');
 
-    var data = {
+    let data = {
       test: 'test!'
     };
-    db.collection('study').doc('test').set(data);
-
+    firestoreDB.collection('study').doc('test').set(data);
     console.log('Firebase 추가 끝');
   });
 });
