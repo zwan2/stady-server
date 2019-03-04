@@ -140,7 +140,7 @@ const firestoreDB = admin.firestore();
 cron.schedule('* 45 14 * * *', () => {
   console.log('Firebase 삭제 시작');
 
-  deleteCollection(firestoreDB, 'study', 1000, () => {
+  deleteCollection(firestoreDB, 'study', 0).then(function () {
     console.log('Firebase 삭제 끝');
     console.log('Firebase 추가 시작');
 
