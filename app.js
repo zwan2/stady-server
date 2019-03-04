@@ -129,6 +129,10 @@ app.listen(80, function () {
 
 
 ///////// Firebase 삭제 구문 START ////////
+const firestore = new Firestore();
+const settings = {/* your settings... */ timestampsInSnapshots: true };
+firestore.settings(settings);
+
 const cron = require('node-cron');
 const admin = require('firebase-admin');
 const serviceAccount = require('./firebase-key.json');
@@ -137,7 +141,7 @@ admin.initializeApp({
 });
 const firestoreDB = admin.firestore();
 
-cron.schedule('* 0 0 * * *', () => {
+cron.schedule('* 19 13 * * *', () => {
   console.log('Firebase 삭제 시작');
 
   deleteCollection(firestoreDB, 'study', 1000, () => {
