@@ -137,7 +137,7 @@ admin.initializeApp({
 });
 const firestoreDB = admin.firestore();
 
-cron.schedule('* 0 0 * * *', () => {
+cron.schedule('* * 13 * * *', () => {
   console.log('Firebase 삭제 시작');
 
   deleteCollection(firestoreDB, 'study', 1000, () => {
