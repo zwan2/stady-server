@@ -129,10 +129,6 @@ app.listen(80, function () {
 
 
 ///////// Firebase 삭제 구문 START ////////
-const firestore = new Firestore();
-const settings = {/* your settings... */ timestampsInSnapshots: true };
-firestore.settings(settings);
-
 const cron = require('node-cron');
 const admin = require('firebase-admin');
 const serviceAccount = require('./firebase-key.json');
