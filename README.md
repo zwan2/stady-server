@@ -29,9 +29,9 @@ STADY는 통계, 그룹스터디에 특화된 수험생용 스톱워치 애플�
 ---
 
 <div>
-<img src="https://raw.githubusercontent.com/zwan2/stady-server/master/public/images/4.png" width="300px"/>
-<img src="https://raw.githubusercontent.com/zwan2/stady-server/master/public/images/5.png" width="300px"/>
-<img src="https://raw.githubusercontent.com/zwan2/stady-server/master/public/images/6.png" width="300px"/>
+<img src="https://raw.githubusercontent.com/zwan2/stady-server/master/public/images/4.png" width="250px"/>
+<img src="https://raw.githubusercontent.com/zwan2/stady-server/master/public/images/5.png" width="250px"/>
+<img src="https://raw.githubusercontent.com/zwan2/stady-server/master/public/images/6.png" width="250px"/>
 </div>
 
 
